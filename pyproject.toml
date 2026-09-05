@@ -1,0 +1,41 @@
+[project]
+name = "harmonic-resonance-groove"
+dynamic = ["version"]
+authors = [
+  { name="phi ARCHITECT", email="github@phiarchitect.com" },
+]
+description = "Study of groove mechanics and isolated multitrack stem manager for rehearsal and analysis"
+readme = "README.rst"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+]
+dependencies = [
+    "yt-dlp",
+    "rich",
+    "click",
+    "pyyaml",
+]
+
+[project.scripts]
+groove = "harmonic_resonance.groove.cli:main"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["harmonic_resonance*"]
+namespaces = true
+
+[tool.setuptools.dynamic]
+version = {attr = "harmonic_resonance.groove.__version__"}
+
+[project.urls]
+"Website" = "https://harmonic-resonance.github.io/groove"
+"Repository" = "https://github.com/harmonic-resonance/groove"
+"Issues" = "https://github.com/harmonic-resonance/groove/issues"

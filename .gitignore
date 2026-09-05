@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Audio stems and downloaded media
+tracks/
+sessions/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.opus
+
+# Audacity temporary and project files
+*.aup3
+*.aup3-shm
+*.aup3-wal
+*_data/
+
+# Testing & tool caches
+.pytest_cache/
+.coverage
+htmlcov/
+.tags
+tags
