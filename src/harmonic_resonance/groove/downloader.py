@@ -159,3 +159,77 @@ def download_song_stems(
         downloaded_paths.append(path)
 
     return downloaded_paths
+
+
+def detect_silence_segments(
+    audio_path: Path,
+    noise_db: str = "-30dB",
+    min_duration: float = 1.5,
+) -> List[dict]:
+    """
+    Detect silent gaps and return active sound segments in an audio file using ffmpeg.
+    """
+    cmd = [
+        "ffmpeg", "-i", str(audio_path),
+        "-af", f"silencedetect=noise={noise_db}:d={min_duration}",
+        "-f", "null", "-"
+    ]
+    p = subprocess.run(cmd, capture_output=True, text=True)
+
+    silences = []
+    current_silence_start = None
+    import re
+
+    for line in p.stderr.splitlines():
+        if "silence_start" in line:
+            m = re.search(r"silence_start:\s*([\d\.]+)", line)
+            if m:
+                current_silence_start = float(m.group(1))
+        elif "silence_end" in line:
+            m = re.search(r"silence_end:\s*([\d\.]+)", line)
+            if m and current_silence_start is not None:
+                end = float(m.group(1))
+                silences.append((current_silence_start, end))
+                current_silence_start = None
+
+    return silences
+
+
+def slice_audio_file(
+    audio_path: Path,
+    slices: List[dict],
+    output_dir: Path,
+    logger: Optional[Callable[[str], None]] = None,
+) -> List[Path]:
+    """
+    Slice an audio file into multiple stem files based on start times and durations.
+    Each slice dict should have:
+      - 'name': output filename
+      - 'start': start time string or seconds (e.g. '00:00:04.283' or 4.283)
+      - 'duration': duration string or seconds (e.g. 226.078)
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    created: List[Path] = []
+
+    for s in slices:
+        out_name = s["name"]
+        out_path = output_dir / out_name
+        start = str(s["start"])
+        dur = str(s["duration"])
+
+        if logger:
+            display = s.get("display_name", out_name)
+            logger(f"[cyan]Slicing '{display}' ({start} for {dur}s) -> {out_name}[/cyan]")
+
+        cmd = [
+            "ffmpeg", "-y",
+            "-ss", start,
+            "-i", str(audio_path),
+            "-t", dur,
+            "-c", "copy",
+            str(out_path),
+        ]
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        created.append(out_path)
+
+    return created

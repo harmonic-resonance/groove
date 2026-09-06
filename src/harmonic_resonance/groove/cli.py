@@ -18,7 +18,7 @@ except ImportError:
 
 
 from .catalog import CATALOG, get_song, list_songs
-from .downloader import download_song_stems, get_song_directory
+from .downloader import download_song_stems, get_song_directory, slice_audio_file
 from .audacity import generate_audacity_lof, launch_audacity
 from .study import get_groove_study, GROOVE_FOUNDATIONS
 
@@ -164,6 +164,55 @@ def cmd_download(args):
         sys.exit(1)
 
 
+def cmd_slice(args):
+    """Slice a deconstruction audio file into individual stem tracks based on time marks."""
+    song = get_song(args.song)
+    if not song:
+        print_msg(f"Error: Song '{args.song}' not found.")
+        sys.exit(1)
+
+    if not song.deconstruction_slices:
+        print_msg(f"Error: No deconstruction time marks configured for '{song.title}'.")
+        sys.exit(1)
+
+    base_dir = Path(args.output) if args.output else None
+    song_dir = get_song_directory(song, base_dir)
+
+    input_audio = Path(args.input) if args.input else None
+    if not input_audio:
+        candidates = [
+            song_dir / "03_clavinet_left.wav",
+            song_dir / f"{song.id}_deconstruction.wav",
+            song_dir / "deconstruction.wav",
+        ]
+        for c in candidates:
+            if c.exists():
+                input_audio = c
+                break
+
+    if not input_audio or not input_audio.exists():
+        print_msg(f"Error: Input audio file not found. Specify --input <path>.")
+        sys.exit(1)
+
+    out_dir = song_dir / (args.subfolder or "parsed_stems")
+    print_msg(f"[bold cyan]Slicing stems from:[/bold cyan] {input_audio.name} ({input_audio.stat().st_size / (1024*1024):.1f} MB)")
+    created = slice_audio_file(input_audio, song.deconstruction_slices, out_dir, logger=print_msg)
+
+    # Generate LOF file for the parsed stems
+    lof_path = out_dir / f"{song.id}-stems.lof"
+    lof_lines = [
+        f"# Audacity Multitrack Session: {song.title} (Parsed Stems)",
+        f"# Artist: {song.artist} ({song.year})",
+        "window offset 0",
+    ]
+    for c in created:
+        lof_lines.append(f'file "{c.name}"')
+    lof_path.write_text("\n".join(lof_lines), encoding="utf-8")
+
+    print_msg(f"\n[bold green]Success![/bold green] Sliced {len(created)} stems into: {out_dir}")
+    print_msg(f"[bold green]LOF session created:[/bold green] {lof_path}")
+
+
 def cmd_audacity(args):
     """Generate Audacity .lof session and optionally launch Audacity."""
     song = get_song(args.song)
@@ -172,17 +221,34 @@ def cmd_audacity(args):
         sys.exit(1)
 
     base_dir = Path(args.output) if args.output else None
+    song_dir = get_song_directory(song, base_dir)
     audio_format = args.format.lower()
+
+    # Check if user passed an explicit .aup4 project or parsed stems
+    parsed_dir = song_dir / "parsed_stems"
+    aup4_files = list(song_dir.glob("*.aup4")) + list(song_dir.glob("*.aup4.aup4"))
 
     lof_path = generate_audacity_lof(song, base_dir=base_dir, audio_format=audio_format)
     print_msg(f"[bold green]Generated Audacity multitrack session script:[/bold green]")
     print_msg(f"  [cyan]{lof_path.resolve()}[/cyan]")
-    print_msg(f"\n[dim]To open manually in Audacity, go to File -> Open and choose this .lof file.[/dim]")
+    if aup4_files:
+        print_msg(f"[dim]Existing .aup4 project found: {aup4_files[0].resolve()}[/dim]")
 
     if args.launch:
+        # Determine launch target: if parsed stems exist, pass them
+        parsed_wavs = sorted(parsed_dir.glob("*.wav")) if parsed_dir.exists() else []
         print_msg(f"[bold yellow]Launching Audacity with multitrack session...[/bold yellow]")
         try:
-            launch_audacity(lof_path)
+            if parsed_wavs and args.use_parsed:
+                print_msg(f"[cyan]Importing {len(parsed_wavs)} parsed track(s) from command line into Audacity:[/cyan]")
+                for pw in parsed_wavs:
+                    print_msg(f"  - {pw.name}")
+                launch_audacity(files=parsed_wavs)
+            elif aup4_files and args.use_project:
+                print_msg(f"[cyan]Opening existing project: {aup4_files[0].name}[/cyan]")
+                launch_audacity(target=aup4_files[0])
+            else:
+                launch_audacity(target=lof_path)
             print_msg(f"[bold green]Audacity launched![/bold green]")
         except Exception as e:
             print_msg(f"[bold red]Failed to launch Audacity:[/bold red] {e}")
@@ -221,12 +287,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_dl.add_argument("--dry-run", action="store_true", help="Simulate download without invoking yt-dlp")
     p_dl.set_defaults(func=cmd_download)
 
+    # slice
+    p_slice = subparsers.add_parser("slice", help="Slice deconstruction audio into isolated stem files")
+    p_slice.add_argument("song", help="Song ID slug (e.g. 'higher-ground')")
+    p_slice.add_argument("--input", "-i", default=None, help="Path to input deconstruction audio file")
+    p_slice.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
+    p_slice.add_argument("--subfolder", default="parsed_stems", help="Subfolder name for sliced stems")
+    p_slice.set_defaults(func=cmd_slice)
+
     # audacity
     p_aud = subparsers.add_parser("audacity", help="Generate an Audacity multitrack session file (.lof)")
     p_aud.add_argument("song", help="Song ID slug")
     p_aud.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio format expected in LOF (default: wav)")
     p_aud.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_aud.add_argument("--launch", action="store_true", help="Launch Audacity immediately with the generated session")
+    p_aud.add_argument("--use-parsed", action="store_true", help="Launch Audacity with sliced/parsed stems directly as separate tracks")
+    p_aud.add_argument("--use-project", action="store_true", help="Launch Audacity opening the existing .aup4 project")
     p_aud.set_defaults(func=cmd_audacity)
 
     return parser

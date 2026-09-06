@@ -45,6 +45,7 @@ class Song:
     analysis: GrooveAnalysis
     youtube_playlist_url: Optional[str] = None
     youtube_deconstruction_url: Optional[str] = None
+    deconstruction_slices: Optional[List[Dict]] = None
 
 
 # Curated Registry of Stevie Wonder's Grooviest Masterpieces
@@ -192,6 +193,12 @@ CATALOG: Dict[str, Song] = {
                 "Mute the Clavinet L stem and try to match Stevie's dynamic envelope-filter phrasing.",
             ],
         ),
+        deconstruction_slices=[
+            {"name": "01_drums_tambourine.wav", "display_name": "Drums & Tambourine", "start": "00:00:04.283", "duration": 226.078},
+            {"name": "02_moog_bass.wav", "display_name": "Moog Synth Bass", "start": "00:03:51.971", "duration": 220.065},
+            {"name": "03_clavinets.wav", "display_name": "Clavinets", "start": "00:07:33.861", "duration": 230.444},
+            {"name": "04_vocals.wav", "display_name": "Lead & Backing Vocals", "start": "00:11:26.163", "duration": 226.376},
+        ],
     ),
     "sir-duke": Song(
         id="sir-duke",
