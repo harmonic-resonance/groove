@@ -239,7 +239,19 @@ def cmd_audacity(args):
         parsed_wavs = sorted(parsed_dir.glob("*.wav")) if parsed_dir.exists() else []
         print_msg(f"[bold yellow]Launching Audacity with multitrack session...[/bold yellow]")
         try:
-            if parsed_wavs and args.use_parsed:
+            if args.original:
+                orig_candidates = [
+                    song_dir / f"{song.id}_original.wav",
+                    song_dir / "higher_ground_original.wav",
+                    song_dir / "original.wav",
+                ]
+                orig_file = next((f for f in orig_candidates if f.exists()), None)
+                if not orig_file:
+                    print_msg(f"[bold red]Original audio file not found in {song_dir}[/bold red]")
+                    sys.exit(1)
+                print_msg(f"[cyan]Opening original track for stem separation:[/cyan] {orig_file.name}")
+                launch_audacity(files=[orig_file])
+            elif parsed_wavs and args.use_parsed:
                 print_msg(f"[cyan]Importing {len(parsed_wavs)} parsed track(s) from command line into Audacity:[/cyan]")
                 for pw in parsed_wavs:
                     print_msg(f"  - {pw.name}")
@@ -301,6 +313,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_aud.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio format expected in LOF (default: wav)")
     p_aud.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_aud.add_argument("--launch", action="store_true", help="Launch Audacity immediately with the generated session")
+    p_aud.add_argument("--original", action="store_true", help="Launch Audacity loading the full original track for AI separation")
     p_aud.add_argument("--use-parsed", action="store_true", help="Launch Audacity with sliced/parsed stems directly as separate tracks")
     p_aud.add_argument("--use-project", action="store_true", help="Launch Audacity opening the existing .aup4 project")
     p_aud.set_defaults(func=cmd_audacity)
