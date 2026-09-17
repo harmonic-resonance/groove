@@ -453,18 +453,66 @@ def list_songs() -> List[Song]:
     return list(CATALOG.values())
 
 
-def load_sources_from_csv(csv_path: Optional[str] = None) -> List[Dict[str, str]]:
-    """Load source URLs and track definitions from sources.csv."""
+def get_song_sources_csv_path(song_id: str) -> Optional[Path]:
+    """Find the per-song sources.csv path if it exists or should exist."""
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    tracks_dir = root_dir / "tracks"
+    song = get_song(song_id)
+    if song:
+        artist_slug = song.artist.lower().replace(" ", "-")
+        return tracks_dir / artist_slug / song.id / "sources.csv"
+    
+    # Fallback to searching under tracks
+    matches = list(tracks_dir.glob(f"*/{song_id}/sources.csv"))
+    if matches:
+        return matches[0]
+    return None
+
+
+def load_sources_from_csv(csv_path: Optional[str] = None, song_id: Optional[str] = None) -> List[Dict[str, str]]:
+    """Load source URLs and track definitions from sources.csv (per-song or root)."""
     import csv
     from pathlib import Path
 
     if csv_path:
         p = Path(csv_path)
-    else:
-        # Default to sources.csv in project root
-        p = Path(__file__).resolve().parent.parent.parent.parent / "sources.csv"
         if not p.exists():
-            p = Path("sources.csv")
+            return []
+        records = []
+        with open(p, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                records.append(dict(row))
+        return records
+
+    # If song_id provided, check for song's own sources.csv
+    if song_id:
+        song_csv = get_song_sources_csv_path(song_id)
+        if song_csv and song_csv.exists():
+            records = []
+            with open(song_csv, mode="r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    records.append(dict(row))
+            return records
+
+    # Collect from all per-song sources.csv if they exist
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    song_csv_files = sorted(root_dir.glob("tracks/*/*/sources.csv"))
+    if song_csv_files:
+        all_records = []
+        for scsv in song_csv_files:
+            with open(scsv, mode="r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    all_records.append(dict(row))
+        if all_records:
+            return all_records
+
+    # Default to sources.csv in project root
+    p = root_dir / "sources.csv"
+    if not p.exists():
+        p = Path("sources.csv")
 
     if not p.exists():
         return []
@@ -478,14 +526,16 @@ def load_sources_from_csv(csv_path: Optional[str] = None) -> List[Dict[str, str]
 
 
 def save_sources_to_csv(records: List[Dict[str, str]], csv_path: Optional[str] = None) -> Path:
-    """Save records back to sources.csv preserving column structure."""
+    """Save records back to sources.csv, updating both per-song and root files."""
     import csv
     from pathlib import Path
+
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
 
     if csv_path:
         p = Path(csv_path)
     else:
-        p = Path(__file__).resolve().parent.parent.parent.parent / "sources.csv"
+        p = root_dir / "sources.csv"
         if not p.exists():
             p = Path("sources.csv")
 
@@ -493,9 +543,28 @@ def save_sources_to_csv(records: List[Dict[str, str]], csv_path: Optional[str] =
         return p
 
     fieldnames = list(records[0].keys())
+
+    # 1. Save to target/root CSV
     with open(p, mode="w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(records)
+
+    # 2. Also update per-song sources.csv for affected songs
+    by_song: Dict[str, List[Dict[str, str]]] = {}
+    for r in records:
+        sid = r.get("song_id")
+        if sid:
+            by_song.setdefault(sid, []).append(r)
+
+    for sid, srows in by_song.items():
+        song_csv = get_song_sources_csv_path(sid)
+        if song_csv:
+            song_csv.parent.mkdir(parents=True, exist_ok=True)
+            with open(song_csv, mode="w", encoding="utf-8", newline="") as sf:
+                swriter = csv.DictWriter(sf, fieldnames=fieldnames)
+                swriter.writeheader()
+                swriter.writerows(srows)
+
     return p
 

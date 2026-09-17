@@ -17,19 +17,21 @@ venv/
 ENV/
 
 # Audio stems and downloaded media
-tracks/
-sessions/
 *.wav
 *.mp3
 *.flac
 *.ogg
 *.m4a
 *.opus
+raw_unpadded/
+temp_pad_*
 
 # Audacity temporary and project files
 *.aup3
 *.aup3-shm
 *.aup3-wal
+*.aup4
+*.aup4*
 *_data/
 
 # Testing & tool caches
