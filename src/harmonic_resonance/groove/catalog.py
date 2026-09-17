@@ -60,7 +60,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=100.0,
         key="E♭ minor",
         time_signature="4/4",
-        full_song_url="https://www.youtube.com/watch?v=0CFuCYNx-1g",
+        full_song_url="https://www.youtube.com/watch?v=egqv1mtos6A",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=kYJqD9t9W98",
         stems=[
@@ -205,7 +205,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="B major",
         time_signature="4/4",
-        full_song_url="https://www.youtube.com/watch?v=s6bvx41ey20",
+        full_song_url="https://www.youtube.com/watch?v=EnNgASBdCeo",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=J3PzN3lK0nE",
         stems=[
@@ -270,7 +270,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="E♭ minor",
         time_signature="4/4",
-        full_song_url="https://www.youtube.com/watch?v=hYAM3bl192E",
+        full_song_url="https://www.youtube.com/watch?v=c7IYSAUj78g",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=wDZFfXn9phg",
         stems=[
