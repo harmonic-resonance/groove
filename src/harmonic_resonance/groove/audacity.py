@@ -9,17 +9,33 @@ import sqlite3
 import struct
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from .catalog import Song, Stem
 from .downloader import get_song_directory, get_stem_filename
 
 
+def get_audio_duration(audio_path: Path) -> float:
+    """Return the duration of an audio file in seconds using wave or ffprobe."""
+    import wave
+    p = Path(audio_path)
+    try:
+        with wave.open(str(p), "rb") as w:
+            return w.getnframes() / float(w.getframerate())
+    except Exception:
+        cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(p)
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return float(res.stdout.strip())
+
+
 def extract_offsets_from_aup4(aup4_path: Path) -> Dict[str, float]:
     """
-    Extract track clip offsets (in seconds) from an Audacity 4 .aup4 project database.
+    Extract track clip start offsets (in seconds) from an Audacity 4 .aup4 project database.
 
-    Returns a dictionary mapping track name (e.g. '00_full_song', '01_drums') to its
+    Returns a dictionary mapping track name (e.g. '00_full_song', '01_drums_tambourine') to its
     start offset in seconds.
     """
     p = Path(aup4_path)
@@ -68,6 +84,110 @@ def calculate_relative_offsets(offsets: Dict[str, float], ref_key: str = "00_ful
         else:
             relative[track_name] = {"lead_in_trim": 0.0, "pad_delay": delta, "delta": delta}
     return relative
+
+
+def pad_track_audio(
+    input_file: Path,
+    output_file: Optional[Path] = None,
+    start_offset: float = 0.0,
+    total_duration: Optional[float] = None,
+    logger: Optional[Callable[[str], None]] = None,
+) -> Path:
+    """
+    Pad the start of an audio track by start_offset seconds, and optionally
+    pad the end to total_duration seconds so that all tracks have identical length.
+    """
+    in_p = Path(input_file)
+    out_p = Path(output_file) if output_file else in_p
+
+    temp_path = in_p.with_name(f"temp_pad_{in_p.name}")
+    filters = []
+
+    if start_offset > 0.0005:
+        delay_ms = int(round(start_offset * 1000))
+        filters.append(f"adelay={delay_ms}|{delay_ms}")
+
+    if total_duration and total_duration > 0:
+        filters.append(f"apad=whole_dur={total_duration:.6f}")
+
+    if not filters:
+        return in_p
+
+    filter_str = ",".join(filters)
+    if logger:
+        logger(f"  [cyan]Padding {in_p.name}:[/cyan] start +{start_offset:.4f}s -> target length {total_duration:.3f}s")
+
+    cmd = ["ffmpeg", "-y", "-i", str(in_p), "-af", filter_str, "-c:a", "pcm_s16le", str(temp_path)]
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        shutil.move(str(temp_path), str(out_p))
+    except Exception as err:
+        if temp_path.exists():
+            temp_path.unlink()
+        raise RuntimeError(f"Failed to pad audio {in_p.name}: {err}")
+
+    return out_p
+
+
+def pad_song_tracks(
+    song_dir: Path,
+    start_offsets: Dict[str, float],
+    backup_raw: bool = True,
+    logger: Optional[Callable[[str], None]] = None,
+) -> Dict[str, Path]:
+    """
+    Given captured start_offsets, pad the start of each track by its offset and pad
+    the end so all tracks in song_dir have the exact same duration.
+    """
+    song_dir = Path(song_dir)
+    track_info = {}
+    for track_name, offset in start_offsets.items():
+        candidates = list(song_dir.glob(f"{track_name}.*"))
+        # Exclude temporary or raw files
+        valid = [c for c in candidates if not c.name.startswith("temp_") and not c.name.startswith(".")]
+        if valid:
+            wav_file = valid[0]
+            raw_dur = get_audio_duration(wav_file)
+            end_time = offset + raw_dur
+            track_info[track_name] = {
+                "file": wav_file,
+                "offset": offset,
+                "raw_dur": raw_dur,
+                "end_time": end_time,
+            }
+
+    if not track_info:
+        return {}
+
+    target_duration = max(info["end_time"] for info in track_info.values())
+
+    if logger:
+        logger(f"[bold cyan]Equalizing track lengths to {target_duration:.3f}s across {len(track_info)} tracks[/bold cyan]")
+
+    processed = {}
+    raw_dir = song_dir / "raw_unpadded"
+    if backup_raw:
+        raw_dir.mkdir(exist_ok=True)
+
+    for track_name, info in track_info.items():
+        wav_file = info["file"]
+        offset = info["offset"]
+
+        if backup_raw:
+            backup_path = raw_dir / wav_file.name
+            if not backup_path.exists():
+                shutil.copy2(str(wav_file), str(backup_path))
+
+        pad_track_audio(
+            input_file=wav_file,
+            output_file=wav_file,
+            start_offset=offset,
+            total_duration=target_duration,
+            logger=logger,
+        )
+        processed[track_name] = wav_file
+
+    return processed
 
 
 def generate_launch_script(

@@ -11,6 +11,9 @@ from harmonic_resonance.groove.audacity import (
     generate_launch_script,
     extract_offsets_from_aup4,
     calculate_relative_offsets,
+    get_audio_duration,
+    pad_track_audio,
+    pad_song_tracks,
 )
 
 
@@ -68,6 +71,72 @@ class TestAudacity(unittest.TestCase):
             self.assertAlmostEqual(offsets["00_full_song"], 3.4805, places=4)
             self.assertAlmostEqual(offsets["03_clavinets"], 0.0, places=4)
 
+    def test_pad_track_audio(self):
+        import wave
+        import struct
+
+        # Create a 1.0 second silent WAV file at 44100Hz 16-bit stereo
+        wav_path = self.base_dir / "test_tone.wav"
+        framerate = 44100
+        nchannels = 2
+        sampwidth = 2
+        nframes = 44100  # exactly 1.0 second
+
+        with wave.open(str(wav_path), "wb") as w:
+            w.setnchannels(nchannels)
+            w.setsampwidth(sampwidth)
+            w.setframerate(framerate)
+            # Write 1.0s of silence
+            data = struct.pack(f"<{nframes * nchannels}h", *([0] * (nframes * nchannels)))
+            w.writeframes(data)
+
+        self.assertAlmostEqual(get_audio_duration(wav_path), 1.0, places=2)
+
+        # Pad with 0.5s start offset and total duration 2.0s
+        padded_path = pad_track_audio(
+            input_file=wav_path,
+            output_file=self.base_dir / "padded.wav",
+            start_offset=0.5,
+            total_duration=2.0,
+        )
+        self.assertTrue(padded_path.exists())
+        self.assertAlmostEqual(get_audio_duration(padded_path), 2.0, places=2)
+
+    def test_pad_song_tracks(self):
+        import wave
+        import struct
+
+        song_dir = self.base_dir / "dummy_song"
+        song_dir.mkdir()
+
+        framerate = 44100
+        # Create 2 dummy tracks with different lengths
+        for name, dur in [("00_full_song", 1.0), ("01_drums", 1.5)]:
+            p = song_dir / f"{name}.wav"
+            nframes = int(dur * framerate)
+            with wave.open(str(p), "wb") as w:
+                w.setnchannels(2)
+                w.setsampwidth(2)
+                w.setframerate(framerate)
+                w.writeframes(b"\x00" * (nframes * 4))
+
+        offsets = {
+            "00_full_song": 0.5,   # end = 0.5 + 1.0 = 1.5s
+            "01_drums": 0.2,       # end = 0.2 + 1.5 = 1.7s
+        }
+        # Equalized duration should be 1.7s
+        processed = pad_song_tracks(song_dir, offsets, backup_raw=True)
+        self.assertEqual(len(processed), 2)
+        for name, p in processed.items():
+            dur = get_audio_duration(p)
+            self.assertAlmostEqual(dur, 1.7, places=2)
+
+        # Raw backup should exist
+        raw_dir = song_dir / "raw_unpadded"
+        self.assertTrue((raw_dir / "00_full_song.wav").exists())
+        self.assertTrue((raw_dir / "01_drums.wav").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
+

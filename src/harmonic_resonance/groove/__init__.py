@@ -20,6 +20,9 @@ from .audacity import (
     generate_launch_script,
     extract_offsets_from_aup4,
     calculate_relative_offsets,
+    get_audio_duration,
+    pad_track_audio,
+    pad_song_tracks,
     launch_audacity,
 )
 from .study import (
@@ -42,6 +45,9 @@ __all__ = [
     "generate_launch_script",
     "extract_offsets_from_aup4",
     "calculate_relative_offsets",
+    "get_audio_duration",
+    "pad_track_audio",
+    "pad_song_tracks",
     "launch_audacity",
     "get_groove_study",
     "__version__",

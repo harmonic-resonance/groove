@@ -60,10 +60,11 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(args.all)
 
     def test_parser_align(self):
-        args = self.parser.parse_args(["align", "higher-ground", "--save"])
+        args = self.parser.parse_args(["align", "higher-ground", "--save", "--pad"])
         self.assertEqual(args.command, "align")
         self.assertEqual(args.song, "higher-ground")
         self.assertTrue(args.save)
+        self.assertTrue(args.pad)
 
 
 if __name__ == "__main__":

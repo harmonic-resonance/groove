@@ -320,7 +320,7 @@ def regenerate_song_from_sources(
     3. Generates the Audacity 4 launch script (launch.sh).
     """
     from .catalog import load_sources_from_csv, get_song
-    from .audacity import generate_launch_script
+    from .audacity import generate_launch_script, get_audio_duration, pad_track_audio
 
     records = load_sources_from_csv()
     song_records = [r for r in records if r.get("song_id", "").lower() == song_id.lower()]
@@ -344,21 +344,23 @@ def regenerate_song_from_sources(
     generated_paths: List[Path] = []
     song_records = sorted(song_records, key=lambda r: int(r.get("track_number", 0)))
 
+    # Step 1: Download missing tracks
+    tracks_to_pad = []
     for r in song_records:
         trk_num = int(r.get("track_number", 0))
         stem_name = r.get("stem_name", f"track_{trk_num}")
         display_name = r.get("display_name", stem_name)
         url = r.get("url", "")
-        lead_in_trim = float(r.get("lead_in_trim", 0.0) or 0.0)
-        pad_delay = float(r.get("pad_delay", 0.0) or 0.0)
+        start_offset = float(r.get("start_offset", 0.0) or 0.0)
 
         filename = f"{trk_num:02d}_{stem_name}.{audio_format}"
         target_path = song_dir / filename
 
         if target_path.exists() and not force:
             if logger:
-                logger(f"[dim]Track {trk_num} exists: {filename} (skipping)[/dim]")
+                logger(f"[dim]Track {trk_num} exists: {filename} (skipping download)[/dim]")
             generated_paths.append(target_path)
+            tracks_to_pad.append((target_path, start_offset))
             continue
 
         if not url:
@@ -367,7 +369,7 @@ def regenerate_song_from_sources(
             continue
 
         if logger:
-            logger(f"[cyan]Processing Track {trk_num}: {display_name}...[/cyan]")
+            logger(f"[cyan]Downloading Track {trk_num}: {display_name}...[/cyan]")
 
         output_template = str(target_path.with_suffix("")) + ".%(ext)s"
         cmd = build_yt_dlp_command(url, output_template, audio_format)
@@ -375,26 +377,48 @@ def regenerate_song_from_sources(
         if dry_run:
             if logger:
                 logger(f"[yellow][DRY RUN][/yellow] Would download: {url} -> {filename}")
-                if lead_in_trim > 0 or pad_delay > 0:
-                    logger(f"  [yellow][DRY RUN][/yellow] Would apply offset: trim={lead_in_trim}s, pad={pad_delay}s")
+                if start_offset > 0:
+                    logger(f"  [yellow][DRY RUN][/yellow] Would pad start offset: +{start_offset:.4f}s")
             generated_paths.append(target_path)
             continue
 
         # Execute yt-dlp download
         try:
             subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            generated_paths.append(target_path)
+            tracks_to_pad.append((target_path, start_offset))
         except Exception as err:
             if logger:
                 logger(f"[bold red]Download failed for {display_name}:[/bold red] {err}")
             continue
 
-        # Apply offset if specified
-        if target_path.exists() and (lead_in_trim > 0 or pad_delay > 0):
-            apply_audio_offset(target_path, lead_in_trim=lead_in_trim, pad_delay=pad_delay, logger=logger)
+    # Step 2: Apply start offset padding and equalize all track lengths
+    if not dry_run and tracks_to_pad:
+        # Calculate end time = start_offset + raw duration for each track
+        track_durations = []
+        for path, offset in tracks_to_pad:
+            if path.exists():
+                raw_dur = get_audio_duration(path)
+                track_durations.append((path, offset, raw_dur, offset + raw_dur))
 
-        generated_paths.append(target_path)
+        if track_durations:
+            max_duration = max(t[3] for t in track_durations)
+            has_offsets = any(t[1] > 0.0005 for t in track_durations)
 
-    # Generate launch.sh
+            if has_offsets and logger:
+                logger(f"[bold cyan]Aligning start offsets and padding to equal length ({max_duration:.3f}s)...[/bold cyan]")
+
+            for path, offset, raw_dur, end_time in track_durations:
+                if offset > 0.0005 or abs(end_time - max_duration) > 0.05:
+                    pad_track_audio(
+                        input_file=path,
+                        output_file=path,
+                        start_offset=offset,
+                        total_duration=max_duration,
+                        logger=logger,
+                    )
+
+    # Step 3: Generate launch.sh
     if song:
         launch_script = generate_launch_script(song, base_dir=base_dir)
         if logger:
