@@ -1,6 +1,0 @@
-song_id,title,artist,track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
-i-wish,I Wish,Stevie Wonder,0,full_song,Full Song Reference,https://www.youtube.com/watch?v=c7IYSAUj78g,c7IYSAUj78g,4:12,official_audio,0.000000,Master full stereo mix reference track
-i-wish,I Wish,Stevie Wonder,1,drums,Drums,https://www.youtube.com/watch?v=qpnp5BEOcC0,qpnp5BEOcC0,4:08,stems_playlist,0.000000,Rock Band studio master rip (Raymond Pounds drums)
-i-wish,I Wish,Stevie Wonder,2,bass,Walking Bass (Nathan Watts),https://www.youtube.com/watch?v=9PHrzWjPodc,9PHrzWjPodc,4:08,stems_playlist,0.000000,Rock Band studio master rip (walking bassline)
-i-wish,I Wish,Stevie Wonder,3,guitars,Guitars,https://www.youtube.com/watch?v=QYcq9H5sS78,QYcq9H5sS78,4:08,stems_playlist,0.000000,Rock Band studio master rip (rhythm funk guitar)
-i-wish,I Wish,Stevie Wonder,4,keyboards,Fender Rhodes & Clavinet,https://www.youtube.com/watch?v=6GjOW43QGCY,6GjOW43QGCY,4:08,stems_playlist,0.000000,Rock Band studio master rip (Rhodes & clavinet)

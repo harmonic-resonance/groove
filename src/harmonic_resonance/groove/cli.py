@@ -1,11 +1,11 @@
 """
-cli.py - Rich command-line interface for groove.
+cli.py - Rich, context-aware command-line interface for Groove.
 """
 
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 try:
     from rich.console import Console
@@ -17,21 +17,35 @@ except ImportError:
     console = None
 
 
-from .catalog import CATALOG, get_song, list_songs, load_sources_from_csv, save_sources_to_csv
+from .context import detect_context, Scope, GrooveContext
+from .catalog import (
+    CATALOG,
+    Song,
+    get_song,
+    list_songs,
+    load_tracks_from_csv,
+    load_song_tracks,
+    save_song_tracks,
+    TRACK_FIELDS,
+)
 from .downloader import (
     download_song_stems,
     get_song_directory,
     slice_audio_file,
     regenerate_song_from_sources,
-    apply_audio_offset,
 )
 from .audacity import (
-    generate_launch_script,
     extract_offsets_from_aup4,
     get_audio_duration,
     pad_track_audio,
     pad_song_tracks,
     launch_audacity,
+    open_song_in_audacity,
+)
+from .scaffold import (
+    create_artist_readme,
+    create_song_scaffold,
+    add_track_entry,
 )
 from .study import get_groove_study, GROOVE_FOUNDATIONS
 
@@ -40,257 +54,225 @@ def print_msg(msg: str):
     if console:
         console.print(msg)
     else:
-        # Strip rich tags if rich not present
         import re
         clean = re.sub(r"\[.*?\]", "", msg)
         print(clean)
 
 
-def cmd_list(args):
-    """List all available groove studies in the catalog."""
-    songs = list_songs()
-    if console:
-        table = Table(title="[bold magenta]Groove Catalog - Master Rhythm Studies[/bold magenta]")
-        table.add_column("ID", style="cyan", no_wrap=True)
-        table.add_column("Title", style="bold white")
-        table.add_column("Artist", style="green")
-        table.add_column("Album (Year)", style="dim")
-        table.add_column("Tempo", justify="right", style="yellow")
-        table.add_column("Key", style="blue")
-        table.add_column("Stems", justify="center", style="magenta")
+def resolve_target_song(args, ctx: GrooveContext) -> Tuple[Optional[Song], Path]:
+    """
+    Resolve targeted song and its directory from CLI args and context.
+    Returns (song_object_or_None, song_directory_path).
+    """
+    song_id = getattr(args, "song", None)
+    if not song_id:
+        if ctx.scope == Scope.SONG and ctx.song:
+            song_id = ctx.song
+        else:
+            print_msg("[bold red]Error:[/bold red] No song specified. Provide a song name or run from within a song directory.")
+            sys.exit(1)
 
-        for song in songs:
-            table.add_row(
-                song.id,
-                song.title,
-                song.artist,
-                f"{song.album} ({song.year})",
-                f"{song.tempo_bpm:.0f} BPM",
-                song.key,
-                str(len(song.stems)),
-            )
-        console.print(table)
+    normalized = song_id.lower().replace(" ", "-").replace("_", "-")
+    song = get_song(normalized)
+
+    # Locate directory
+    song_dir = ctx.find_song_dir(normalized)
+    if not song_dir:
+        artist_slug = song.artist.lower().replace(" ", "-") if song else (ctx.artist or "unknown")
+        tracks_dir = ctx.tracks_dir or Path("tracks")
+        song_dir = tracks_dir / artist_slug / normalized
+
+    return song, song_dir
+
+
+def cmd_list(args):
+    """List available groove studies (sensitive to current context)."""
+    ctx = detect_context()
+
+    if ctx.scope == Scope.SONG and ctx.song:
+        cmd_info(args)
+        return
+
+    if ctx.scope == Scope.ARTIST and ctx.artist:
+        songs = ctx.list_songs(artist=ctx.artist)
+        if console:
+            table = Table(title=f"[bold magenta]Groove Studies: {ctx.artist.replace('-', ' ').title()}[/bold magenta]")
+            table.add_column("Song Slug", style="cyan")
+            table.add_column("Title", style="bold white")
+            table.add_column("Tracks Count", justify="center", style="yellow")
+            table.add_column("Has CSML", justify="center", style="blue")
+            table.add_column("Has Project", justify="center", style="green")
+
+            for art, s_slug in songs:
+                s_dir = ctx.tracks_dir / art / s_slug
+                trks = load_song_tracks(s_dir)
+                has_csml = "✓" if (s_dir / "chords.csml").exists() else "-"
+                has_proj = "✓" if list(s_dir.glob("*.aup4")) else "-"
+                cat_song = get_song(s_slug)
+                title = cat_song.title if cat_song else s_slug.replace("-", " ").title()
+                table.add_row(s_slug, title, str(len(trks)), has_csml, has_proj)
+            console.print(table)
+        else:
+            print(f"\nGroove Studies for {ctx.artist}:")
+            for art, s_slug in songs:
+                s_dir = ctx.tracks_dir / art / s_slug
+                trks = load_song_tracks(s_dir)
+                print(f"  - {s_slug:<20} ({len(trks)} tracks)")
+        return
+
+    # Root scope: list artists and songs
+    all_songs = ctx.list_songs()
+    if all_songs:
+        if console:
+            table = Table(title="[bold magenta]Groove Catalog - Master Rhythm Studies[/bold magenta]")
+            table.add_column("Artist", style="green", no_wrap=True)
+            table.add_column("Song Slug", style="cyan")
+            table.add_column("Title", style="bold white")
+            table.add_column("Tracks", justify="center", style="yellow")
+            table.add_column("Chords", justify="center", style="blue")
+            table.add_column("Project", justify="center", style="magenta")
+
+            for art, s_slug in all_songs:
+                s_dir = ctx.tracks_dir / art / s_slug
+                trks = load_song_tracks(s_dir)
+                has_csml = "✓" if (s_dir / "chords.csml").exists() else "-"
+                has_proj = "✓" if list(s_dir.glob("*.aup4")) else "-"
+                cat_song = get_song(s_slug)
+                title = cat_song.title if cat_song else s_slug.replace("-", " ").title()
+                table.add_row(art.replace("-", " ").title(), s_slug, title, str(len(trks)), has_csml, has_proj)
+            console.print(table)
+        else:
+            print("\nGROOVE CATALOG:")
+            for art, s_slug in all_songs:
+                print(f"  {art}/{s_slug}")
     else:
-        print("\n==========================================================================================")
-        print(" GROOVE CATALOG - Master Rhythm Studies")
-        print("==========================================================================================")
-        print(f" {'ID':<20} | {'TITLE':<20} | {'TEMPO':<8} | {'KEY':<12} | {'STEMS':<5}")
-        print("------------------------------------------------------------------------------------------")
-        for song in songs:
-            print(f" {song.id:<20} | {song.title:<20} | {song.tempo_bpm:>5.0f} BPM | {song.key:<12} | {len(song.stems):^5}")
-        print("==========================================================================================\n")
-        print("Run 'groove info <id>' or 'groove study <id>' for full pocket breakdowns.\n")
+        # Fallback to in-memory catalog
+        cat_songs = list_songs()
+        if console:
+            table = Table(title="[bold magenta]Groove Catalog (Catalog Definitions)[/bold magenta]")
+            table.add_column("ID", style="cyan", no_wrap=True)
+            table.add_column("Title", style="bold white")
+            table.add_column("Artist", style="green")
+            table.add_column("Tempo", justify="right", style="yellow")
+            table.add_column("Key", style="blue")
+            for song in cat_songs:
+                table.add_row(song.id, song.title, song.artist, f"{song.tempo_bpm:.0f} BPM", song.key)
+            console.print(table)
 
 
 def cmd_info(args):
-    """Show details and stem breakdown for a song."""
-    song = get_song(args.song)
-    if not song:
-        print_msg(f"Error: Song '{args.song}' not found. Run 'groove list' to see available songs.")
-        sys.exit(1)
+    """Show details, stems, and metadata for a song."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+
+    title = song.title if song else song_dir.name.replace("-", " ").title()
+    artist = song.artist if song else (song_dir.parent.name.replace("-", " ").title() if song_dir else "Unknown")
+    album = song.album if song else "TBD"
+    year = song.year if song else "TBD"
+    tempo = f"{song.tempo_bpm} BPM" if song else "TBD"
+    key = song.key if song else "TBD"
+    meter = song.time_signature if song else "4/4"
+
+    tracks = load_song_tracks(song_dir) if song_dir.exists() else []
 
     if console:
         panel_content = (
-            f"[bold white]{song.title}[/bold white] by [green]{song.artist}[/green]\n"
-            f"[dim]Album:[/dim] {song.album} ({song.year}) | [dim]Tempo:[/dim] [yellow]{song.tempo_bpm} BPM[/yellow] | [dim]Key:[/dim] [blue]{song.key}[/blue] | [dim]Meter:[/dim] {song.time_signature}"
+            f"[bold white]{title}[/bold white] by [green]{artist}[/green]\n"
+            f"[dim]Directory:[/dim] {song_dir}\n"
+            f"[dim]Album:[/dim] {album} ({year}) | [dim]Tempo:[/dim] [yellow]{tempo}[/yellow] | [dim]Key:[/dim] [blue]{key}[/blue] | [dim]Meter:[/dim] {meter}"
         )
-        console.print(Panel(panel_content, title=f"Song Info: {song.id}", border_style="cyan"))
+        console.print(Panel(panel_content, title=f"Song Study: {song_dir.name}", border_style="cyan"))
 
-        table = Table(title=f"Isolated Stems for '{song.title}'")
-        table.add_column("#", justify="right", style="dim")
-        table.add_column("Stem Name", style="bold cyan")
-        table.add_column("Display Name", style="white")
-        table.add_column("Description", style="dim")
-        table.add_column("Pan", justify="center", style="yellow")
+        if tracks:
+            table = Table(title=f"Tracks in tracks.csv ({len(tracks)})")
+            table.add_column("#", justify="right", style="yellow")
+            table.add_column("Stem Name", style="bold green")
+            table.add_column("Display Name", style="white")
+            table.add_column("Offset", justify="right", style="cyan")
+            table.add_column("Dur", justify="center", style="dim")
 
-        for idx, stem in enumerate(song.stems, start=1):
-            pan_str = f"{stem.pan:+.1f}" if stem.pan != 0 else "C"
-            table.add_row(str(idx), stem.name, stem.display_name, stem.description, pan_str)
-
-        console.print(table)
-        print_msg(f"\n[bold green]To download stems:[/bold green] groove download {song.id}")
-        print_msg(f"[bold green]To generate Audacity multitrack session:[/bold green] groove audacity {song.id} --launch")
-        print_msg(f"[bold green]To read pocket study:[/bold green] groove study {song.id}\n")
+            for t in tracks:
+                off = float(t.get("start_offset", 0.0) or 0.0)
+                table.add_row(
+                    t.get("track_number", ""),
+                    t.get("stem_name", ""),
+                    t.get("display_name", ""),
+                    f"+{off:.4f}s" if off > 0 else "-",
+                    t.get("duration", ""),
+                )
+            console.print(table)
+        print_msg(f"\n[bold green]Commands for this song:[/bold green]")
+        print_msg(f"  groove open              # Open in Audacity")
+        print_msg(f"  groove chords            # View chord sheet (CSML)")
+        print_msg(f"  groove study             # Read groove & pocket breakdown\n")
     else:
-        print("\n" + "=" * 70)
-        print(f" SONG: {song.title.upper()} - {song.artist}")
-        print(f" Album: {song.album} ({song.year}) | Tempo: {song.tempo_bpm} BPM | Key: {song.key} | Meter: {song.time_signature}")
-        print("=" * 70)
-        print(" ISOLATED STEMS:")
-        print("-" * 70)
-        for idx, stem in enumerate(song.stems, start=1):
-            pan_str = f"pan={stem.pan:+.1f}" if stem.pan != 0 else "center"
-            print(f"  [{idx}] {stem.display_name} ({pan_str})")
-            print(f"      Role: {stem.description}")
-        print("-" * 70)
-        print(f" Download stems:     groove download {song.id}")
-        print(f" Audacity session:   groove audacity {song.id} --launch")
-        print(f" Pocket study:       groove study {song.id}\n")
+        print(f"\nSONG STUDY: {title} by {artist}")
+        print(f"Directory: {song_dir}")
+        print(f"Tracks: {len(tracks)}")
 
 
 def cmd_study(args):
     """Display in-depth groove analysis and rehearsal tips."""
-    song = get_song(args.song)
-    if not song:
-        print_msg(f"[bold red]Error:[/bold red] Song '{args.song}' not found.")
-        sys.exit(1)
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
 
-    study_text = get_groove_study(song.id)
-    if console:
-        console.print(Markdown(study_text))
-    else:
-        print(study_text)
-
-
-def cmd_foundations(args):
-    """Display the core principles of what makes a good groove."""
-    if console:
-        console.print(Markdown(GROOVE_FOUNDATIONS))
-    else:
-        print(GROOVE_FOUNDATIONS)
-
-
-def cmd_download(args):
-    """Download isolated audio stems for a song."""
-    song = get_song(args.song)
-    if not song:
-        print_msg(f"[bold red]Error:[/bold red] Song '{args.song}' not found.")
-        sys.exit(1)
-
-    base_dir = Path(args.output) if args.output else None
-    audio_format = args.format.lower()
-
-    print_msg(f"[bold cyan]Preparing download for '{song.title}' stems...[/bold cyan]")
-    try:
-        downloaded = download_song_stems(
-            song=song,
-            base_dir=base_dir,
-            audio_format=audio_format,
-            dry_run=args.dry_run,
-            logger=print_msg,
-        )
-        print_msg(f"\n[bold green]Success![/bold green] Processed {len(downloaded)} stems.")
-        launch_script = generate_launch_script(song, base_dir=base_dir)
-        print_msg(f"[bold green]Audacity launcher generated:[/bold green] {launch_script}")
-    except Exception as e:
-        print_msg(f"[bold red]Download error:[/bold red] {e}")
-        sys.exit(1)
-
-
-def cmd_slice(args):
-    """Slice a deconstruction audio file into individual stem tracks based on time marks."""
-    song = get_song(args.song)
-    if not song:
-        print_msg(f"Error: Song '{args.song}' not found.")
-        sys.exit(1)
-
-    if not song.deconstruction_slices:
-        print_msg(f"Error: No deconstruction time marks configured for '{song.title}'.")
-        sys.exit(1)
-
-    base_dir = Path(args.output) if args.output else None
-    song_dir = get_song_directory(song, base_dir)
-
-    input_audio = Path(args.input) if args.input else None
-    if not input_audio:
-        candidates = [
-            song_dir / "03_clavinet_left.wav",
-            song_dir / f"{song.id}_deconstruction.wav",
-            song_dir / "deconstruction.wav",
-        ]
-        for c in candidates:
-            if c.exists():
-                input_audio = c
-                break
-
-    if not input_audio or not input_audio.exists():
-        print_msg(f"Error: Input audio file not found. Specify --input <path>.")
-        sys.exit(1)
-
-    out_dir = song_dir / (args.subfolder or "parsed_stems")
-    print_msg(f"[bold cyan]Slicing stems from:[/bold cyan] {input_audio.name} ({input_audio.stat().st_size / (1024*1024):.1f} MB)")
-    created = slice_audio_file(input_audio, song.deconstruction_slices, out_dir, logger=print_msg)
-
-    print_msg(f"\n[bold green]Success![/bold green] Sliced {len(created)} stems into: {out_dir}")
-
-
-def cmd_audacity(args):
-    """Generate Audacity 4 launch script and optionally launch Audacity with tracks in order."""
-    song = get_song(args.song)
-    if not song:
-        print_msg(f"[bold red]Error:[/bold red] Song '{args.song}' not found.")
-        sys.exit(1)
-
-    base_dir = Path(args.output) if args.output else None
-    song_dir = get_song_directory(song, base_dir)
-
-    # Check if user passed an explicit .aup4 project or parsed stems
-    parsed_dir = song_dir / "parsed_stems"
-    aup4_files = list(song_dir.glob("*.aup4")) + list(song_dir.glob("*.aup4.aup4"))
-
-    launch_script = generate_launch_script(song, base_dir=base_dir)
-    print_msg(f"[bold green]Generated Audacity multitrack launch script:[/bold green]")
-    print_msg(f"  [cyan]{launch_script.resolve()}[/cyan]")
-    if aup4_files:
-        print_msg(f"[dim]Existing .aup4 project found: {aup4_files[0].resolve()}[/dim]")
-
-    if args.launch:
-        # Collect track files in order (full song first, then stems)
-        tracks_to_open = []
-        if parsed_dir.exists() and list(parsed_dir.glob("*.wav")):
-            tracks_to_open = sorted(parsed_dir.glob("*.wav"))
-        elif list(song_dir.glob("*.wav")):
-            tracks_to_open = sorted(song_dir.glob("*.wav"))
-
-        print_msg(f"[bold yellow]Launching Audacity with tracks in order...[/bold yellow]")
-        try:
-            if args.original:
-                orig_candidates = [
-                    song_dir / f"{song.id}_original.wav",
-                    song_dir / "higher_ground_original.wav",
-                    song_dir / "original.wav",
-                ]
-                orig_file = next((f for f in orig_candidates if f.exists()), None)
-                if not orig_file:
-                    print_msg(f"[bold red]Original audio file not found in {song_dir}[/bold red]")
-                    sys.exit(1)
-                print_msg(f"[cyan]Opening original track:[/cyan] {orig_file.name}")
-                launch_audacity(files=[orig_file])
-            elif args.use_project and aup4_files:
-                print_msg(f"[cyan]Opening existing project: {aup4_files[0].name}[/cyan]")
-                launch_audacity(target=aup4_files[0])
-            elif tracks_to_open:
-                print_msg(f"[cyan]Opening {len(tracks_to_open)} track(s) in order on the command line:[/cyan]")
-                for idx, t in enumerate(tracks_to_open, 1):
-                    print_msg(f"  [{idx}] {t.name}")
-                launch_audacity(files=tracks_to_open)
-            else:
-                print_msg(f"[bold yellow]No audio tracks found to launch in {song_dir}.[/bold yellow]")
-            print_msg(f"[bold green]Audacity launched![/bold green]")
-        except Exception as e:
-            print_msg(f"[bold red]Failed to launch Audacity:[/bold red] {e}")
-
-
-def cmd_sources(args):
-    """List or inspect track source URLs from sources.csv."""
-    sources = load_sources_from_csv(getattr(args, "csv", None))
-    if not sources:
-        print_msg("[bold red]No sources found in sources.csv[/bold red]")
+    # First check if README.md exists in song_dir
+    readme_path = song_dir / "README.md"
+    if readme_path.exists():
+        content = readme_path.read_text(encoding="utf-8")
+        if console:
+            console.print(Markdown(content))
+        else:
+            print(content)
         return
 
-    filter_song = args.song.lower() if getattr(args, "song", None) else None
-    if filter_song:
-        sources = [
-            s for s in sources
-            if filter_song in s.get("song_id", "").lower() or filter_song in s.get("title", "").lower()
-        ]
-        if not sources:
-            print_msg(f"[bold yellow]No sources found matching '{args.song}'.[/bold yellow]")
-            return
+    # Fallback to study module text
+    if song:
+        study_text = get_groove_study(song.id)
+        if console:
+            console.print(Markdown(study_text))
+        else:
+            print(study_text)
+    else:
+        print_msg(f"[bold yellow]No study guide found for '{song_dir.name}'.[/bold yellow]")
 
+
+def cmd_chords(args):
+    """Display CSML chord progressions and lyrics for a song."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+
+    csml_path = song_dir / "chords.csml"
+    if not csml_path.exists():
+        print_msg(f"[bold yellow]No chords.csml found in {song_dir}.[/bold yellow]")
+        return
+
+    content = csml_path.read_text(encoding="utf-8")
+    title = song.title if song else song_dir.name.replace("-", " ").title()
     if console:
-        table = Table(title="[bold magenta]Groove Audio Sources (YouTube Stems & References)[/bold magenta]")
-        table.add_column("Song ID", style="cyan", no_wrap=True)
+        panel = Panel(content, title=f"[bold cyan]Chord Sheet (CSML): {title}[/bold cyan]", border_style="green")
+        console.print(panel)
+    else:
+        print(f"\n=== CHORD SHEET (CSML): {title} ===")
+        print(content)
+
+
+def cmd_tracks(args):
+    """List or inspect track source URLs from tracks.csv."""
+    ctx = detect_context()
+    song_name = getattr(args, "song", None) or (ctx.song if ctx.scope == Scope.SONG else None)
+    artist_name = ctx.artist if ctx.scope == Scope.ARTIST else None
+
+    tracks = load_tracks_from_csv(song_id=song_name, artist_id=artist_name)
+    if not tracks:
+        print_msg("[bold yellow]No tracks found in tracks.csv.[/bold yellow]")
+        return
+
+    title_str = f"Tracks for '{song_name}'" if song_name else "Groove Audio Tracks Registry"
+    if console:
+        table = Table(title=f"[bold magenta]{title_str}[/bold magenta]")
+        if not song_name:
+            table.add_column("Song", style="cyan", no_wrap=True)
         table.add_column("#", justify="right", style="yellow")
         table.add_column("Stem Name", style="bold green")
         table.add_column("Display Name", style="white")
@@ -299,72 +281,69 @@ def cmd_sources(args):
         table.add_column("Type", style="magenta")
         table.add_column("URL", style="blue")
 
-        for s in sources:
-            offset = float(s.get("start_offset", 0.0) or 0.0)
-            table.add_row(
-                s.get("song_id", ""),
-                s.get("track_number", ""),
-                s.get("stem_name", ""),
-                s.get("display_name", ""),
+        for t in tracks:
+            offset = float(t.get("start_offset", 0.0) or 0.0)
+            row = []
+            if not song_name:
+                row.append(t.get("song_id", ""))
+            row.extend([
+                t.get("track_number", ""),
+                t.get("stem_name", ""),
+                t.get("display_name", ""),
                 f"+{offset:.4f}s" if offset > 0 else "-",
-                s.get("duration", ""),
-                s.get("source_type", ""),
-                s.get("url", ""),
-            )
+                t.get("duration", ""),
+                t.get("source_type", ""),
+                t.get("url", ""),
+            ])
+            table.add_row(*row)
         console.print(table)
     else:
-        print("\n===========================================================================================================")
-        print(" GROOVE AUDIO SOURCES (sources.csv)")
+        print(f"\n===========================================================================================================")
+        print(f" {title_str}")
         print("===========================================================================================================")
-        print(f" {'SONG':<15} | {'#':<2} | {'STEM':<18} | {'OFFSET':<10} | {'DUR':<5} | {'TYPE':<14} | {'URL'}")
+        print(f" {'#':<2} | {'STEM':<18} | {'OFFSET':<10} | {'DUR':<5} | {'TYPE':<14} | {'URL'}")
         print("-----------------------------------------------------------------------------------------------------------")
-        for s in sources:
-            offset = float(s.get("start_offset", 0.0) or 0.0)
+        for t in tracks:
+            offset = float(t.get("start_offset", 0.0) or 0.0)
             offset_str = f"+{offset:.4f}s" if offset > 0 else "-"
-            print(f" {s.get('song_id',''):<15} | {s.get('track_number',''):<2} | {s.get('stem_name',''):<18} | {offset_str:<10} | {s.get('duration',''):<5} | {s.get('source_type',''):<14} | {s.get('url','')}")
+            print(f" {t.get('track_number',''):<2} | {t.get('stem_name',''):<18} | {offset_str:<10} | {t.get('duration',''):<5} | {t.get('source_type',''):<14} | {t.get('url','')}")
         print("===========================================================================================================\n")
 
 
-def cmd_regenerate(args):
-    """Regenerate multitrack audio stems and launch script from sources.csv."""
-    song_ids = []
-    if args.song:
-        song_ids = [args.song.lower()]
-    elif args.all:
-        sources = load_sources_from_csv(getattr(args, "csv", None))
-        song_ids = sorted(list({s["song_id"] for s in sources}))
-    else:
-        print_msg("[bold yellow]Specify a song ID or --all to regenerate all songs.[/bold yellow]")
-        return
+def cmd_open(args):
+    """Open Audacity for a song (opens .aup4 project if present, else loads tracks in order)."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
 
-    base_dir = Path(args.output) if args.output else None
-    for sid in song_ids:
-        print_msg(f"\n[bold cyan]====================================================[/bold cyan]")
-        print_msg(f"[bold cyan]Regenerating session for: {sid}[/bold cyan]")
-        print_msg(f"[bold cyan]====================================================[/bold cyan]")
-        try:
-            paths = regenerate_song_from_sources(
-                song_id=sid,
-                base_dir=base_dir,
-                audio_format=args.format,
-                dry_run=args.dry_run,
-                force=args.force,
-                logger=print_msg,
-            )
-            print_msg(f"[bold green]Done![/bold green] Processed {len(paths)} track(s) for '{sid}'.")
-        except Exception as e:
-            print_msg(f"[bold red]Error regenerating '{sid}':[/bold red] {e}")
+    if not song_dir.exists():
+        print_msg(f"[bold red]Error:[/bold red] Song directory not found: {song_dir}")
+        sys.exit(1)
+
+    force_tracks = getattr(args, "tracks", False)
+    force_project = getattr(args, "project", False)
+
+    try:
+        proc = open_song_in_audacity(
+            song_dir=song_dir,
+            force_tracks=force_tracks,
+            force_project=force_project,
+            logger=print_msg,
+        )
+        print_msg(f"[bold green]Audacity launched for {song.title if song else song_dir.name}![/bold green]")
+    except Exception as e:
+        print_msg(f"[bold red]Failed to open Audacity:[/bold red] {e}")
+        sys.exit(1)
 
 
 def cmd_align(args):
-    """Inspect and extract track offsets from an Audacity .aup4 project and optionally pad audio or update sources.csv."""
-    song = get_song(args.song)
-    base_dir = Path(args.output) if args.output else None
-    song_dir = get_song_directory(song, base_dir) if song else Path("tracks") / "stevie-wonder" / args.song
+    """Inspect and extract track offsets from an Audacity .aup4 project and update tracks.csv."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
 
-    aup4_files = list(song_dir.glob("*.aup4"))
+    aup4_files = [f for f in sorted(song_dir.glob("*.aup4")) if not f.name.endswith(".aup4_")]
     if not aup4_files:
         print_msg(f"[bold red]Error:[/bold red] No .aup4 project file found in {song_dir}")
+        print_msg("Run 'groove open' to load tracks, drag clips to align by ear, and save the Audacity project.")
         sys.exit(1)
 
     project_file = aup4_files[0]
@@ -374,11 +353,13 @@ def cmd_align(args):
         print_msg("[bold red]No waveclip offsets found in project database.[/bold red]")
         return
 
-    # Inspect audio files on disk and calculate duration info
     track_details = []
     for track_name, offset in sorted(raw_offsets.items()):
         candidates = list(song_dir.glob(f"{track_name}.*"))
-        valid = [c for c in candidates if not c.name.startswith("temp_") and not c.name.startswith(".")]
+        valid = [
+            c for c in candidates
+            if not c.name.startswith("temp_") and not c.name.startswith(".") and not c.name.endswith(".aup4") and not c.name.endswith(".aup4_")
+        ]
         wav_file = valid[0] if valid else None
         raw_dur = get_audio_duration(wav_file) if (wav_file and wav_file.exists()) else 0.0
         end_time = offset + raw_dur if raw_dur > 0 else 0.0
@@ -419,32 +400,257 @@ def cmd_align(args):
         if max_end_time > 0:
             print(f"Equalized target session duration: {max_end_time:.3f}s")
 
-    # If --save: update sources.csv with start_offset
+    # If --save (or default):
     if getattr(args, "save", False):
-        sources = load_sources_from_csv(getattr(args, "csv", None))
+        records = load_song_tracks(song_dir)
         updated_count = 0
-        for s in sources:
-            if s.get("song_id", "").lower() == args.song.lower():
-                trk_num = int(s.get("track_number", 0))
-                stem_name = s.get("stem_name", "")
-                for tname, offset_val in raw_offsets.items():
-                    if tname.startswith(f"{trk_num:02d}_") or stem_name in tname:
-                        s["start_offset"] = f"{offset_val:.6f}"
-                        updated_count += 1
-                        break
-        save_sources_to_csv(sources, getattr(args, "csv", None))
-        print_msg(f"\n[bold green]Success![/bold green] Saved {updated_count} track start offset(s) into sources.csv!")
+        for r in records:
+            trk_num = int(r.get("track_number", 0))
+            stem_name = r.get("stem_name", "")
+            for tname, offset_val in raw_offsets.items():
+                if tname.startswith(f"{trk_num:02d}_") or stem_name in tname:
+                    r["start_offset"] = f"{offset_val:.6f}"
+                    updated_count += 1
+                    break
+        save_song_tracks(song_dir, records)
+        print_msg(f"\n[bold green]Success![/bold green] Saved {updated_count} track start offset(s) into tracks.csv!")
 
-    # If --pad: pad audio tracks on disk
+    # If --pad:
     if getattr(args, "pad", False):
         print_msg(f"\n[bold yellow]Padding track starts and equalizing duration to {max_end_time:.3f}s...[/bold yellow]")
         processed = pad_song_tracks(song_dir, raw_offsets, backup_raw=True, logger=print_msg)
         print_msg(f"[bold green]Success![/bold green] Padded and equalized {len(processed)} audio track(s) on disk!")
         print_msg(f"[dim]Original unpadded tracks preserved in {song_dir / 'raw_unpadded'}[/dim]")
-        # Regenerate launch script
-        if song:
-            generate_launch_script(song, base_dir=base_dir)
 
+
+def cmd_pad(args):
+    """Pad start silence and equalize all track lengths on disk using captured offsets."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+
+    records = load_song_tracks(song_dir)
+    offsets = {}
+    for r in records:
+        trk_num = int(r.get("track_number", 0))
+        stem_name = r.get("stem_name", "")
+        off = float(r.get("start_offset", 0.0) or 0.0)
+        track_key = f"{trk_num:02d}_{stem_name}"
+        offsets[track_key] = off
+
+    if not offsets or not any(v > 0 for v in offsets.values()):
+        aup4_files = [f for f in sorted(song_dir.glob("*.aup4")) if not f.name.endswith(".aup4_")]
+        if aup4_files:
+            offsets = extract_offsets_from_aup4(aup4_files[0])
+
+    if not offsets:
+        print_msg(f"[bold red]Error:[/bold red] No start offsets found in tracks.csv or .aup4 for {song_dir.name}.")
+        print_msg("Run 'groove align' first to inspect and capture offsets.")
+        sys.exit(1)
+
+    print_msg(f"[bold cyan]Applying start offsets and equalizing durations for '{song_dir.name}'...[/bold cyan]")
+    processed = pad_song_tracks(song_dir, offsets, backup_raw=True, logger=print_msg)
+    print_msg(f"[bold green]Success![/bold green] Padded and equalized {len(processed)} audio track(s) on disk!")
+    print_msg(f"[dim]Original unpadded tracks preserved in {song_dir / 'raw_unpadded'}[/dim]")
+
+
+def cmd_regenerate(args):
+    """Regenerate multitrack audio stems from tracks.csv."""
+    ctx = detect_context()
+    song_ids = []
+
+    if args.song:
+        song_ids = [args.song.lower().replace(" ", "-")]
+    elif args.all:
+        tracks = load_tracks_from_csv()
+        song_ids = sorted(list({t["song_id"] for t in tracks if "song_id" in t}))
+    elif ctx.scope == Scope.SONG and ctx.song:
+        song_ids = [ctx.song]
+    else:
+        print_msg("[bold yellow]Specify a song ID, run inside a song folder, or pass --all to regenerate.[/bold yellow]")
+        return
+
+    base_dir = Path(args.output) if args.output else None
+    for sid in song_ids:
+        print_msg(f"\n[bold cyan]====================================================[/bold cyan]")
+        print_msg(f"[bold cyan]Regenerating session for: {sid}[/bold cyan]")
+        print_msg(f"[bold cyan]====================================================[/bold cyan]")
+        try:
+            paths = regenerate_song_from_sources(
+                song_id=sid,
+                base_dir=base_dir,
+                audio_format=args.format,
+                dry_run=args.dry_run,
+                force=args.force,
+                logger=print_msg,
+            )
+            print_msg(f"[bold green]Done![/bold green] Processed {len(paths)} track(s) for '{sid}'.")
+        except Exception as e:
+            print_msg(f"[bold red]Error regenerating '{sid}':[/bold red] {e}")
+
+
+def cmd_download(args):
+    """Download isolated audio stems for a song."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+    if not song:
+        print_msg(f"[bold red]Error:[/bold red] Song '{args.song}' not found in catalog. Use 'groove regenerate' for custom tracks.csv songs.")
+        sys.exit(1)
+
+    base_dir = Path(args.output) if args.output else None
+    audio_format = args.format.lower()
+
+    print_msg(f"[bold cyan]Preparing download for '{song.title}' stems...[/bold cyan]")
+    try:
+        downloaded = download_song_stems(
+            song=song,
+            base_dir=base_dir,
+            audio_format=audio_format,
+            dry_run=args.dry_run,
+            logger=print_msg,
+        )
+        print_msg(f"\n[bold green]Success![/bold green] Processed {len(downloaded)} stems.")
+    except Exception as e:
+        print_msg(f"[bold red]Download error:[/bold red] {e}")
+        sys.exit(1)
+
+
+def cmd_new_artist(args):
+    """Create a new artist folder with an initial README.md."""
+    ctx = detect_context()
+    name = args.name.strip()
+    slug = name.lower().replace(" ", "-")
+    tracks_dir = ctx.tracks_dir or Path("tracks")
+    artist_dir = tracks_dir / slug
+
+    readme_path = create_artist_readme(artist_dir, name)
+    print_msg(f"[bold green]Created artist folder:[/bold green] {artist_dir}")
+    print_msg(f"[bold green]Created artist README:[/bold green] {readme_path}")
+
+
+def cmd_new_song(args):
+    """Create a new song study folder with README.md, tracks.csv, and chords.csml."""
+    ctx = detect_context()
+    tracks_dir = ctx.tracks_dir or Path("tracks")
+
+    # 1. Determine artist
+    artist_name = getattr(args, "artist", None)
+    if not artist_name:
+        if ctx.artist:
+            artist_name = ctx.artist
+        else:
+            existing_artists = ctx.list_artists()
+            if existing_artists:
+                print_msg("[bold cyan]Existing artists:[/bold cyan]")
+                for idx, a in enumerate(existing_artists, 1):
+                    print_msg(f"  [{idx}] {a}")
+                choice = input("Select artist number or enter new artist name: ").strip()
+                if choice.isdigit() and 1 <= int(choice) <= len(existing_artists):
+                    artist_name = existing_artists[int(choice) - 1]
+                else:
+                    artist_name = choice
+            else:
+                artist_name = input("Enter artist name: ").strip()
+
+    artist_slug = artist_name.lower().replace(" ", "-")
+    artist_dir = tracks_dir / artist_slug
+    if not (artist_dir / "README.md").exists():
+        create_artist_readme(artist_dir, artist_name)
+
+    # 2. Determine song title
+    song_title = getattr(args, "title", None)
+    if not song_title:
+        song_title = input("Enter song title: ").strip()
+
+    song_slug = song_title.lower().replace(" ", "-").replace("'", "")
+    song_dir = artist_dir / song_slug
+
+    album = getattr(args, "album", "") or "TBD"
+    year = getattr(args, "year", "") or "TBD"
+    key = getattr(args, "key", "") or "C"
+    tempo = float(getattr(args, "tempo", 120.0) or 120.0)
+
+    created = create_song_scaffold(
+        song_dir=song_dir,
+        title=song_title,
+        artist=artist_name.replace("-", " ").title(),
+        album=album,
+        year=year,
+        tempo_bpm=tempo,
+        key=key,
+    )
+    print_msg(f"\n[bold green]Success![/bold green] Created song study for '{song_title}': {song_dir}")
+    for k, p in created.items():
+        print_msg(f"  - [cyan]{p.name}[/cyan]")
+    print_msg(f"\nNext steps:")
+    print_msg(f"  1. Add stems with 'groove add-track <url>'")
+    print_msg(f"  2. Run 'groove download' to fetch stems")
+    print_msg(f"  3. Run 'groove open' to align in Audacity\n")
+
+
+def cmd_add_track(args):
+    """Add a track URL to tracks.csv in the song folder."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+
+    records = load_song_tracks(song_dir)
+    next_num = max([int(r.get("track_number", 0)) for r in records], default=-1) + 1
+    track_num = args.number if args.number is not None else next_num
+
+    stem_name = args.stem or f"stem_{track_num}"
+    display_name = args.display or stem_name.replace("_", " ").title()
+    url = args.url or ""
+    source_type = args.type or "stems"
+    notes = args.notes or ""
+
+    csv_path = add_track_entry(
+        song_dir=song_dir,
+        track_number=track_num,
+        stem_name=stem_name,
+        display_name=display_name,
+        url=url,
+        source_type=source_type,
+        notes=notes,
+    )
+    print_msg(f"[bold green]Added Track {track_num} ({display_name}) to {csv_path.name}[/bold green]")
+
+
+def cmd_slice(args):
+    """Slice a deconstruction audio file into individual stem tracks based on time marks."""
+    ctx = detect_context()
+    song, song_dir = resolve_target_song(args, ctx)
+
+    if not song or not song.deconstruction_slices:
+        print_msg(f"Error: No deconstruction time marks configured for '{song.title if song else song_dir.name}'.")
+        sys.exit(1)
+
+    input_audio = Path(args.input) if args.input else None
+    if not input_audio:
+        candidates = [
+            song_dir / "03_clavinet_left.wav",
+            song_dir / f"{song.id}_deconstruction.wav",
+            song_dir / "deconstruction.wav",
+        ]
+        for c in candidates:
+            if c.exists():
+                input_audio = c
+                break
+
+    if not input_audio or not input_audio.exists():
+        print_msg(f"Error: Input audio file not found. Specify --input <path>.")
+        sys.exit(1)
+
+    out_dir = song_dir / (args.subfolder or "parsed_stems")
+    print_msg(f"[bold cyan]Slicing stems from:[/bold cyan] {input_audio.name} ({input_audio.stat().st_size / (1024*1024):.1f} MB)")
+    created = slice_audio_file(input_audio, song.deconstruction_slices, out_dir, logger=print_msg)
+    print_msg(f"\n[bold green]Success![/bold green] Sliced {len(created)} stems into: {out_dir}")
+
+
+def cmd_foundations(args):
+    """Display the core principles of what makes a good groove."""
+    if console:
+        console.print(Markdown(GROOVE_FOUNDATIONS))
+    else:
+        print(GROOVE_FOUNDATIONS)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -454,76 +660,105 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # sources
-    p_sources = subparsers.add_parser("sources", help="View or search source URLs recorded in sources.csv")
-    p_sources.add_argument("song", nargs="?", default=None, help="Optional song ID to filter sources")
-    p_sources.add_argument("--csv", default=None, help="Path to custom sources.csv file")
-    p_sources.set_defaults(func=cmd_sources)
-
     # list
-    p_list = subparsers.add_parser("list", help="List all groove studies in the catalog")
+    p_list = subparsers.add_parser("list", help="List all groove studies in the catalog / current context")
     p_list.set_defaults(func=cmd_list)
 
     # info
-    p_info = subparsers.add_parser("info", help="View song metadata and stem breakdown")
-    p_info.add_argument("song", help="Song ID slug (e.g. 'superstition', 'higher-ground')")
+    p_info = subparsers.add_parser("info", help="View song metadata and track breakdown")
+    p_info.add_argument("song", nargs="?", default=None, help="Song ID slug (e.g. 'superstition', 'higher-ground')")
     p_info.set_defaults(func=cmd_info)
 
     # study
     p_study = subparsers.add_parser("study", help="Read groove analysis and rehearsal guide for a song")
-    p_study.add_argument("song", help="Song ID slug (e.g. 'superstition', 'sir-duke')")
+    p_study.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
     p_study.set_defaults(func=cmd_study)
 
-    # foundations
-    p_foundations = subparsers.add_parser("foundations", help="Read the core musicological principles of groove")
-    p_foundations.set_defaults(func=cmd_foundations)
+    # chords
+    p_chords = subparsers.add_parser("chords", help="View chord progression and lyric sheet (CSML format)")
+    p_chords.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
+    p_chords.set_defaults(func=cmd_chords)
+
+    # tracks / sources
+    p_tracks = subparsers.add_parser("tracks", aliases=["sources"], help="View track source URLs and alignment offsets")
+    p_tracks.add_argument("song", nargs="?", default=None, help="Optional song ID to filter tracks")
+    p_tracks.set_defaults(func=cmd_tracks)
+
+    # open / audacity
+    p_open = subparsers.add_parser("open", aliases=["audacity"], help="Open song in Audacity 4 (.aup4 project if present, else audio tracks in order)")
+    p_open.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
+    p_open.add_argument("--tracks", "-t", action="store_true", help="Force opening audio files as separate tracks")
+    p_open.add_argument("--project", "-p", action="store_true", help="Force opening .aup4 project")
+    p_open.add_argument("--launch", action="store_true", default=True, help="Launch Audacity immediately")
+    p_open.set_defaults(func=cmd_open)
+
+    # align
+    p_align = subparsers.add_parser("align", help="Extract clip offsets from an Audacity .aup4 project and save to tracks.csv")
+    p_align.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
+    p_align.add_argument("--save", "-s", action="store_true", default=True, help="Save extracted offsets into tracks.csv (default: True)")
+    p_align.add_argument("--pad", "-p", action="store_true", help="Pad start offsets and equalize all track lengths on disk")
+    p_align.set_defaults(func=cmd_align)
+
+    # pad
+    p_pad = subparsers.add_parser("pad", help="Pad start offsets and equalize track lengths to locked pocket duration")
+    p_pad.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
+    p_pad.set_defaults(func=cmd_pad)
+
+    # regenerate
+    p_regen = subparsers.add_parser("regenerate", help="Regenerate all multitrack audio files from tracks.csv")
+    p_regen.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
+    p_regen.add_argument("--all", action="store_true", help="Regenerate all songs")
+    p_regen.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
+    p_regen.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
+    p_regen.add_argument("--force", "-f", action="store_true", help="Force re-download of existing files")
+    p_regen.add_argument("--dry-run", action="store_true", help="Simulate download and alignment without executing commands")
+    p_regen.set_defaults(func=cmd_regenerate)
 
     # download
-    p_dl = subparsers.add_parser("download", help="Download isolated audio stems for a song")
-    p_dl.add_argument("song", help="Song ID slug")
+    p_dl = subparsers.add_parser("download", help="Download isolated audio stems for a catalog song")
+    p_dl.add_argument("song", nargs="?", default=None, help="Song ID slug")
     p_dl.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
     p_dl.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_dl.add_argument("--dry-run", action="store_true", help="Simulate download without invoking yt-dlp")
     p_dl.set_defaults(func=cmd_download)
 
+    # new-song / new
+    p_new = subparsers.add_parser("new", aliases=["new-song"], help="Create a new song study folder with README.md, tracks.csv, chords.csml")
+    p_new.add_argument("title", nargs="?", default=None, help="Song title (e.g. 'Living for the City')")
+    p_new.add_argument("--artist", "-a", default=None, help="Artist name (defaults to current artist context if inside tracks/<artist>)")
+    p_new.add_argument("--album", default="", help="Album title")
+    p_new.add_argument("--year", default="", help="Release year")
+    p_new.add_argument("--key", default="C", help="Musical key (e.g. 'Ebm', 'B')")
+    p_new.add_argument("--tempo", default=120.0, type=float, help="Tempo in BPM")
+    p_new.set_defaults(func=cmd_new_song)
+
+    # new-artist
+    p_nart = subparsers.add_parser("new-artist", help="Create a new artist directory with initial README.md")
+    p_nart.add_argument("name", help="Artist name (e.g. 'Stevie Wonder', 'Earth Wind & Fire')")
+    p_nart.set_defaults(func=cmd_new_artist)
+
+    # add-track
+    p_at = subparsers.add_parser("add-track", help="Register a track or stem URL into tracks.csv")
+    p_at.add_argument("url", nargs="?", default="", help="YouTube URL or audio source URL")
+    p_at.add_argument("--song", default=None, help="Song slug (defaults to current directory)")
+    p_at.add_argument("--number", "-n", type=int, default=None, help="Track number (e.g. 0 for full song, 1..N for stems)")
+    p_at.add_argument("--stem", default="", help="Stem identifier name (e.g. 'drums', 'moog_bass')")
+    p_at.add_argument("--display", default="", help="Display name (e.g. 'Drums & Tambourine')")
+    p_at.add_argument("--type", default="stems", help="Source type ('official_audio', 'stems', 'deconstruction')")
+    p_at.add_argument("--notes", default="", help="Notes on this stem or arrangement")
+    p_at.set_defaults(func=cmd_add_track)
+
     # slice
     p_slice = subparsers.add_parser("slice", help="Slice deconstruction audio into isolated stem files")
-    p_slice.add_argument("song", help="Song ID slug (e.g. 'higher-ground')")
+    p_slice.add_argument("song", nargs="?", default=None, help="Song ID slug (e.g. 'higher-ground')")
     p_slice.add_argument("--input", "-i", default=None, help="Path to input deconstruction audio file")
     p_slice.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_slice.add_argument("--subfolder", default="parsed_stems", help="Subfolder name for sliced stems")
     p_slice.set_defaults(func=cmd_slice)
 
-    # regenerate
-    p_regen = subparsers.add_parser("regenerate", help="Regenerate all multitrack audio files and launch.sh from sources.csv")
-    p_regen.add_argument("song", nargs="?", default=None, help="Song ID slug (e.g. 'higher-ground', 'superstition')")
-    p_regen.add_argument("--all", action="store_true", help="Regenerate all songs in sources.csv")
-    p_regen.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
-    p_regen.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
-    p_regen.add_argument("--force", "-f", action="store_true", help="Force re-download/re-processing of existing files")
-    p_regen.add_argument("--dry-run", action="store_true", help="Simulate download and alignment without executing commands")
-    p_regen.add_argument("--csv", default=None, help="Path to custom sources.csv file")
-    p_regen.set_defaults(func=cmd_regenerate)
-
-    # align
-    p_align = subparsers.add_parser("align", help="Extract clip offsets from an Audacity .aup4 project and save to sources.csv")
-    p_align.add_argument("song", help="Song ID slug (e.g. 'higher-ground')")
-    p_align.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
-    p_align.add_argument("--save", "-s", action="store_true", help="Save extracted offsets into sources.csv")
-    p_align.add_argument("--pad", "-p", action="store_true", help="Pad start offsets and equalize all track lengths on disk")
-    p_align.add_argument("--csv", default=None, help="Path to custom sources.csv file")
-    p_align.set_defaults(func=cmd_align)
-
-    # audacity
-    p_aud = subparsers.add_parser("audacity", help="Generate an Audacity multitrack launch script (launch.sh)")
-    p_aud.add_argument("song", help="Song ID slug")
-    p_aud.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio format (default: wav)")
-    p_aud.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
-    p_aud.add_argument("--launch", action="store_true", help="Launch Audacity immediately with the generated session")
-    p_aud.add_argument("--original", action="store_true", help="Launch Audacity loading the full original track for AI separation")
-    p_aud.add_argument("--use-parsed", action="store_true", help="Launch Audacity with sliced/parsed stems directly as separate tracks")
-    p_aud.add_argument("--use-project", action="store_true", help="Launch Audacity opening the existing .aup4 project")
-    p_aud.set_defaults(func=cmd_audacity)
+    # foundations
+    p_foundations = subparsers.add_parser("foundations", help="Read the core musicological principles of groove")
+    p_foundations.set_defaults(func=cmd_foundations)
 
     return parser
 
@@ -533,7 +768,6 @@ def main():
     args = parser.parse_args()
 
     if not args.command:
-        # Default to listing catalog
         cmd_list(args)
         return
 

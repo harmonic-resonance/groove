@@ -453,26 +453,112 @@ def list_songs() -> List[Song]:
     return list(CATALOG.values())
 
 
-def get_song_sources_csv_path(song_id: str) -> Optional[Path]:
-    """Find the per-song sources.csv path if it exists or should exist."""
+TRACK_FIELDS = [
+    "track_number",
+    "stem_name",
+    "display_name",
+    "url",
+    "video_id",
+    "duration",
+    "source_type",
+    "start_offset",
+    "notes",
+]
+
+
+def get_song_tracks_csv_path(song_id: str, artist_id: Optional[str] = None) -> Optional[Path]:
+    """Find the per-song tracks.csv (or legacy sources.csv) path."""
     root_dir = Path(__file__).resolve().parent.parent.parent.parent
     tracks_dir = root_dir / "tracks"
     song = get_song(song_id)
-    if song:
-        artist_slug = song.artist.lower().replace(" ", "-")
-        return tracks_dir / artist_slug / song.id / "sources.csv"
-    
-    # Fallback to searching under tracks
-    matches = list(tracks_dir.glob(f"*/{song_id}/sources.csv"))
-    if matches:
-        return matches[0]
+
+    # 1. If artist is known from catalog or argument
+    artist_slug = artist_id or (song.artist.lower().replace(" ", "-") if song else None)
+    if artist_slug:
+        s_id = song.id if song else song_id.lower().replace(" ", "-")
+        target_dir = tracks_dir / artist_slug / s_id
+        for candidate_name in ["tracks.csv", "sources.csv"]:
+            p = target_dir / candidate_name
+            if p.exists():
+                return p
+        # Default target path for new files
+        return target_dir / "tracks.csv"
+
+    # 2. Search across all artist subdirectories
+    normalized_song = song_id.lower().replace(" ", "-")
+    for candidate_name in ["tracks.csv", "sources.csv"]:
+        matches = list(tracks_dir.glob(f"*/{normalized_song}/{candidate_name}"))
+        if matches:
+            return matches[0]
+
     return None
 
 
-def load_sources_from_csv(csv_path: Optional[str] = None, song_id: Optional[str] = None) -> List[Dict[str, str]]:
-    """Load source URLs and track definitions from sources.csv (per-song or root)."""
+def get_song_sources_csv_path(song_id: str) -> Optional[Path]:
+    """Backwards compatibility alias for get_song_tracks_csv_path."""
+    return get_song_tracks_csv_path(song_id)
+
+
+def load_song_tracks(song_dir: Path) -> List[Dict[str, str]]:
+    """Load tracks for a specific song directory."""
     import csv
-    from pathlib import Path
+
+    p = Path(song_dir)
+    csv_file = p / "tracks.csv"
+    if not csv_file.exists():
+        csv_file = p / "sources.csv"
+    if not csv_file.exists():
+        return []
+
+    records = []
+    with open(csv_file, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            records.append(dict(row))
+    return records
+
+
+def save_song_tracks(song_dir: Path, records: List[Dict[str, str]]) -> Path:
+    """Save tracks.csv for a specific song directory without redundant columns."""
+    import csv
+
+    p = Path(song_dir)
+    p.mkdir(parents=True, exist_ok=True)
+    csv_file = p / "tracks.csv"
+
+    if not records:
+        with open(csv_file, mode="w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=TRACK_FIELDS)
+            writer.writeheader()
+        return csv_file
+
+    fieldnames = [k for k in TRACK_FIELDS if any(k in r for r in records)] or TRACK_FIELDS
+    # Strip redundant fields
+    clean_records = []
+    for r in records:
+        clean = {k: r.get(k, "") for k in fieldnames}
+        clean_records.append(clean)
+
+    with open(csv_file, mode="w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(clean_records)
+
+    # Remove old sources.csv if it was present
+    old_sources = p / "sources.csv"
+    if old_sources.exists():
+        old_sources.unlink()
+
+    return csv_file
+
+
+def load_tracks_from_csv(
+    csv_path: Optional[str] = None,
+    song_id: Optional[str] = None,
+    artist_id: Optional[str] = None,
+) -> List[Dict[str, str]]:
+    """Load track definitions from tracks.csv (or legacy sources.csv)."""
+    import csv
 
     if csv_path:
         p = Path(csv_path)
@@ -485,35 +571,49 @@ def load_sources_from_csv(csv_path: Optional[str] = None, song_id: Optional[str]
                 records.append(dict(row))
         return records
 
-    # If song_id provided, check for song's own sources.csv
+    # If song_id provided, load that song's tracks
     if song_id:
-        song_csv = get_song_sources_csv_path(song_id)
-        if song_csv and song_csv.exists():
+        t_csv = get_song_tracks_csv_path(song_id, artist_id=artist_id)
+        if t_csv and t_csv.exists():
             records = []
-            with open(song_csv, mode="r", encoding="utf-8") as f:
+            with open(t_csv, mode="r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    records.append(dict(row))
+                    r = dict(row)
+                    r.setdefault("song_id", song_id)
+                    records.append(r)
             return records
 
-    # Collect from all per-song sources.csv if they exist
+    # Aggregate across all song tracks.csv files
     root_dir = Path(__file__).resolve().parent.parent.parent.parent
-    song_csv_files = sorted(root_dir.glob("tracks/*/*/sources.csv"))
-    if song_csv_files:
-        all_records = []
-        for scsv in song_csv_files:
-            with open(scsv, mode="r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    all_records.append(dict(row))
-        if all_records:
-            return all_records
+    tracks_dir = root_dir / "tracks"
+    all_records = []
 
-    # Default to sources.csv in project root
+    song_csv_files = sorted(list(tracks_dir.glob("*/*/tracks.csv")) + list(tracks_dir.glob("*/*/sources.csv")))
+    # Deduplicate if both exist
+    seen_dirs = set()
+    for scsv in song_csv_files:
+        song_dir = scsv.parent
+        if song_dir in seen_dirs:
+            continue
+        seen_dirs.add(song_dir)
+        art_name = song_dir.parent.name
+        song_name = song_dir.name
+        with open(scsv, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                r = dict(row)
+                r.setdefault("song_id", song_name)
+                r.setdefault("artist", art_name)
+                all_records.append(r)
+
+    if all_records:
+        return all_records
+
+    # Fallback to root sources.csv if present
     p = root_dir / "sources.csv"
     if not p.exists():
         p = Path("sources.csv")
-
     if not p.exists():
         return []
 
@@ -525,46 +625,37 @@ def load_sources_from_csv(csv_path: Optional[str] = None, song_id: Optional[str]
     return records
 
 
+def load_sources_from_csv(csv_path: Optional[str] = None, song_id: Optional[str] = None) -> List[Dict[str, str]]:
+    """Alias for load_tracks_from_csv."""
+    return load_tracks_from_csv(csv_path=csv_path, song_id=song_id)
+
+
 def save_sources_to_csv(records: List[Dict[str, str]], csv_path: Optional[str] = None) -> Path:
-    """Save records back to sources.csv, updating both per-song and root files."""
-    import csv
-    from pathlib import Path
-
-    root_dir = Path(__file__).resolve().parent.parent.parent.parent
-
+    """Save records back to tracks.csv for affected songs."""
     if csv_path:
+        # Save explicitly to given path
+        import csv
         p = Path(csv_path)
-    else:
-        p = root_dir / "sources.csv"
-        if not p.exists():
-            p = Path("sources.csv")
-
-    if not records:
+        fieldnames = list(records[0].keys()) if records else TRACK_FIELDS
+        with open(p, mode="w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(records)
         return p
 
-    fieldnames = list(records[0].keys())
-
-    # 1. Save to target/root CSV
-    with open(p, mode="w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(records)
-
-    # 2. Also update per-song sources.csv for affected songs
+    # Group by song_id and save per song
     by_song: Dict[str, List[Dict[str, str]]] = {}
     for r in records:
         sid = r.get("song_id")
         if sid:
             by_song.setdefault(sid, []).append(r)
 
+    last_path = None
     for sid, srows in by_song.items():
-        song_csv = get_song_sources_csv_path(sid)
-        if song_csv:
-            song_csv.parent.mkdir(parents=True, exist_ok=True)
-            with open(song_csv, mode="w", encoding="utf-8", newline="") as sf:
-                swriter = csv.DictWriter(sf, fieldnames=fieldnames)
-                swriter.writeheader()
-                swriter.writerows(srows)
+        t_path = get_song_tracks_csv_path(sid)
+        if t_path:
+            save_song_tracks(t_path.parent, srows)
+            last_path = t_path
 
-    return p
+    return last_path or Path("tracks.csv")
 

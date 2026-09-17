@@ -11,6 +11,14 @@ from .catalog import (
     list_songs,
     load_sources_from_csv,
     save_sources_to_csv,
+    load_tracks_from_csv,
+    load_song_tracks,
+    save_song_tracks,
+)
+from .context import (
+    Scope,
+    GrooveContext,
+    detect_context,
 )
 from .downloader import (
     download_song_stems,
@@ -24,6 +32,7 @@ from .audacity import (
     pad_track_audio,
     pad_song_tracks,
     launch_audacity,
+    open_song_in_audacity,
 )
 from .study import (
     get_groove_study,
@@ -40,6 +49,12 @@ __all__ = [
     "list_songs",
     "load_sources_from_csv",
     "save_sources_to_csv",
+    "load_tracks_from_csv",
+    "load_song_tracks",
+    "save_song_tracks",
+    "Scope",
+    "GrooveContext",
+    "detect_context",
     "download_song_stems",
     "download_stem",
     "generate_launch_script",
@@ -49,6 +64,7 @@ __all__ = [
     "pad_track_audio",
     "pad_song_tracks",
     "launch_audacity",
+    "open_song_in_audacity",
     "get_groove_study",
     "__version__",
 ]

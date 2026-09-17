@@ -1,0 +1,7 @@
+track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
+0,full_song,Full Song Reference,https://www.youtube.com/watch?v=EnNgASBdCeo,EnNgASBdCeo,3:53,official_audio,0.000000,Master full stereo mix reference track
+1,drums,Drums,https://www.youtube.com/watch?v=WwK3O9b5KFY,WwK3O9b5KFY,3:54,stems_playlist,0.000000,Rock Band studio master rip (Raymond Pounds drums)
+2,bass,Bass (Nathan Watts),https://www.youtube.com/watch?v=gexmlOgxMso,gexmlOgxMso,3:54,stems_playlist,0.000000,Rock Band studio master rip (Nathan Watts bass)
+3,guitars,Guitars,https://www.youtube.com/watch?v=IBa9giTu-jI,IBa9giTu-jI,3:54,stems_playlist,0.000000,Rock Band studio master rip (rhythm guitar & fills)
+4,vocals,Vocals,https://www.youtube.com/watch?v=G9EE05Czn74,G9EE05Czn74,3:54,stems_playlist,0.000000,Rock Band studio master rip (lead & backing vocals)
+5,keyboards,Fender Rhodes & Keyboards,https://www.youtube.com/watch?v=bOslOGxQX8o,bOslOGxQX8o,3:54,stems_playlist,0.000000,Rock Band studio master rip (Rhodes & piano)

@@ -1,0 +1,6 @@
+track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
+0,full_song,Full Song Reference,https://www.youtube.com/watch?v=1esf0efHbjM,1esf0efHbjM,3:43,official_audio,3.480500,Master full stereo mix reference track
+1,drums_tambourine,Drums & Tambourine,https://www.youtube.com/watch?v=7hR9qQZkLw8,7hR9qQZkLw8,3:46,deconstruction,4.313854,Sliced from HJ's Corner deconstruction (00:04-03:50)
+2,moog_bass,Moog Synth Bass,https://www.youtube.com/watch?v=7hR9qQZkLw8,7hR9qQZkLw8,3:40,deconstruction,11.016146,Sliced from HJ's Corner deconstruction (03:51-07:32)
+3,clavinets,Clavinets (Wah / Mu-Tron),https://www.youtube.com/watch?v=7hR9qQZkLw8,7hR9qQZkLw8,3:50,deconstruction,0.000000,Sliced from HJ's Corner deconstruction (07:33-11:24)
+4,vocals,Lead & Backing Vocals,https://www.youtube.com/watch?v=7hR9qQZkLw8,7hR9qQZkLw8,3:46,deconstruction,4.015187,Sliced from HJ's Corner deconstruction (11:26-15:12)

@@ -1,0 +1,33 @@
+# Isn't She Lovely
+
+**Artist:** Stevie Wonder  
+**Album:** Songs in the Key of Life (1976)  
+**Tempo:** 120.0 BPM  
+**Key:** C# minor / E major  
+**Time Signature:** 4/4  
+
+---
+
+## Groove & Pocket Analysis
+
+### The Pocket
+A swinging soul shuffle at 120 BPM. The groove smiles from start to finish. The ride cymbal pattern keeps the shuffle lilting while the bass dances on the 1 and the upbeat of 2.
+
+### Micro-timing & Articulation
+The swing ratio is high (~62%), leaning into a bluesy shuffle feel that gives the Rhodes comping its infectious bounce.
+
+### Interlocking Rhythms
+The chromatic harmonica floats above the tight rhythm section, demonstrating how a solo instrument can play both rhythmically and melodically over a repeating chord vamp.
+
+---
+
+## Rehearsal & Play-Along Guide
+- Solo the Harmonica and Rhodes stems to study Stevie's melodic phrasing against his own harmonic comping.
+- Mute the Harmonica stem and practice improvising your own lead lines (guitar, sax, flute, or keyboard) over the rhythm track.
+
+---
+
+## Files in this Study
+- `tracks.csv`: Registry of isolated tracks, URLs, and alignment offsets.
+- `chords.csml`: Chord progressions and lyric sheet (CSML format).
+- Run `groove open` from this folder to load the multitrack session directly into Audacity.

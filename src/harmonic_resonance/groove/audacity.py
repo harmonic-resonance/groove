@@ -352,3 +352,45 @@ def launch_audacity(
     )
     return proc
 
+
+def open_song_in_audacity(
+    song_dir: Path,
+    force_tracks: bool = False,
+    force_project: bool = False,
+    audacity_bin: Optional[str] = None,
+    logger: Optional[Callable[[str], None]] = None,
+) -> subprocess.Popen:
+    """
+    Open a song in Audacity:
+    - If a .aup4 project exists (and not force_tracks), opens the .aup4 project.
+    - Otherwise (or if force_tracks), opens all track audio files in numeric order
+      so they load as separate multitrack layers.
+    """
+    song_dir = Path(song_dir)
+    aup4_files = [f for f in sorted(song_dir.glob("*.aup4")) if not f.name.endswith(".aup4_")]
+
+    if aup4_files and not force_tracks:
+        proj = aup4_files[0]
+        if logger:
+            logger(f"[bold green]Opening Audacity project:[/bold green] {proj.name}")
+        return launch_audacity(target=proj, audacity_bin=audacity_bin)
+
+    if force_project and not aup4_files:
+        raise FileNotFoundError(f"No .aup4 project found in {song_dir}")
+
+    # Look for tracks in numeric order
+    tracks = sorted([f for f in song_dir.glob("0[0-9]_*.wav") if not f.name.startswith("temp_")])
+    if not tracks:
+        tracks = sorted([f for f in song_dir.glob("*.wav") if not f.name.startswith("temp_")])
+
+    if not tracks:
+        raise FileNotFoundError(f"No audio tracks found in {song_dir} to open in Audacity.")
+
+    if logger:
+        logger(f"[bold cyan]Opening {len(tracks)} track(s) in numeric order in Audacity:[/bold cyan]")
+        for idx, t in enumerate(tracks, 1):
+            logger(f"  [{idx}] {t.name}")
+
+    return launch_audacity(files=tracks, audacity_bin=audacity_bin)
+
+

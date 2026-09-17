@@ -319,13 +319,12 @@ def regenerate_song_from_sources(
     2. Applies lead_in_trim and pad_delay offsets so all tracks are time-aligned.
     3. Generates the Audacity 4 launch script (launch.sh).
     """
-    from .catalog import load_sources_from_csv, get_song
-    from .audacity import generate_launch_script, get_audio_duration, pad_track_audio
+    from .catalog import load_tracks_from_csv, get_song
+    from .audacity import get_audio_duration, pad_track_audio
 
-    records = load_sources_from_csv()
-    song_records = [r for r in records if r.get("song_id", "").lower() == song_id.lower()]
+    song_records = load_tracks_from_csv(song_id=song_id)
     if not song_records:
-        raise ValueError(f"No sources recorded in sources.csv for '{song_id}'.")
+        raise ValueError(f"No tracks recorded in tracks.csv for '{song_id}'.")
 
     song = get_song(song_id)
     if song:
@@ -417,12 +416,6 @@ def regenerate_song_from_sources(
                         total_duration=max_duration,
                         logger=logger,
                     )
-
-    # Step 3: Generate launch.sh
-    if song:
-        launch_script = generate_launch_script(song, base_dir=base_dir)
-        if logger:
-            logger(f"[bold green]Created launcher:[/bold green] {launch_script}")
 
     return generated_paths
 
