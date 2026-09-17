@@ -31,10 +31,10 @@ class TestAudacity(unittest.TestCase):
         self.assertIn("Superstition", content)
         self.assertIn('file "01_drums.wav"', content)
         self.assertIn('file "02_bass.wav"', content)
-        self.assertIn('file "03_clavinet1.wav"', content)
-        self.assertIn('file "04_clavinet2.wav"', content)
-        self.assertIn('file "05_horns.wav"', content)
-        self.assertIn('file "06_vocals.wav"', content)
+        self.assertIn('file "03_vocals.wav"', content)
+        self.assertIn('file "04_clavinet1.wav"', content)
+        self.assertIn('file "05_clavinet2.wav"', content)
+        self.assertIn('file "06_horns.wav"', content)
 
     def test_generate_flac_format(self):
         song = get_song("higher-ground")
@@ -44,8 +44,8 @@ class TestAudacity(unittest.TestCase):
         self.assertTrue(lof_path.exists())
 
         content = lof_path.read_text(encoding="utf-8")
-        self.assertIn('file "01_drums.flac"', content)
-        self.assertIn('file "02_bass.flac"', content)
+        self.assertIn('file "01_drums_tambourine.flac"', content)
+        self.assertIn('file "02_moog_bass.flac"', content)
 
 
 if __name__ == "__main__":

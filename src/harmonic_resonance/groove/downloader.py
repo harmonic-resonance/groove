@@ -146,6 +146,34 @@ def download_song_stems(
         logger(f"[bold green]Starting stem retrieval for '{song.title}' by {song.artist}[/bold green]")
         logger(f"Output directory: {song_dir}")
 
+    # 1. Download full song reference track if available
+    if song.full_song_url:
+        full_song_path = song_dir / f"00_full_song.{audio_format}"
+        if full_song_path.exists():
+            if logger:
+                logger(f"[dim]Reference track already exists: {full_song_path.name} (skipping)[/dim]")
+            downloaded_paths.append(full_song_path)
+        else:
+            if logger:
+                logger(f"[cyan]Downloading Track 0: Full Song Reference ({song.title})...[/cyan]")
+            cmd = build_yt_dlp_command(
+                song.full_song_url,
+                str(full_song_path.with_suffix("")) + ".%(ext)s",
+                audio_format=audio_format,
+            )
+            if dry_run:
+                if logger:
+                    logger(f"[yellow][DRY RUN][/yellow] Would execute: {' '.join(cmd)}")
+                downloaded_paths.append(full_song_path)
+            else:
+                try:
+                    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    downloaded_paths.append(full_song_path)
+                except Exception as err:
+                    if logger:
+                        logger(f"[yellow]Warning: Could not download full reference track: {err}[/yellow]")
+
+    # 2. Download isolated stems in sequence
     for idx, stem in enumerate(song.stems, start=1):
         path = download_stem(
             index=idx,

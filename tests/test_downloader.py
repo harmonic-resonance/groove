@@ -43,8 +43,10 @@ class TestDownloader(unittest.TestCase):
             self.assertIsNotNone(song)
 
             paths = download_song_stems(song, base_dir=base_dir, audio_format="wav", dry_run=True)
-            self.assertEqual(len(paths), len(song.stems))
-            self.assertEqual(paths[0].name, "01_drums.wav")
+            expected_count = len(song.stems) + (1 if song.full_song_url else 0)
+            self.assertEqual(len(paths), expected_count)
+            self.assertEqual(paths[0].name, "00_full_song.wav")
+            self.assertEqual(paths[1].name, "01_drums.wav")
         finally:
             temp_dir.cleanup()
 

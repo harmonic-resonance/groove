@@ -49,10 +49,10 @@ class TestCatalog(unittest.TestCase):
         self.assertIsNotNone(song)
         self.assertEqual(song.tempo_bpm, 125.0)
         stem_names = [s.name for s in song.stems]
-        self.assertIn("drums", stem_names)
-        self.assertIn("bass", stem_names)
-        self.assertIn("clavinet_left", stem_names)
-        self.assertIn("clavinet_right", stem_names)
+        self.assertIn("drums_tambourine", stem_names)
+        self.assertIn("moog_bass", stem_names)
+        self.assertIn("clavinets", stem_names)
+        self.assertIn("vocals", stem_names)
 
 
 if __name__ == "__main__":

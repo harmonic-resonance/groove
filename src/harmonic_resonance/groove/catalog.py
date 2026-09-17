@@ -46,6 +46,7 @@ class Song:
     youtube_playlist_url: Optional[str] = None
     youtube_deconstruction_url: Optional[str] = None
     deconstruction_slices: Optional[List[Dict]] = None
+    full_song_url: Optional[str] = None
 
 
 # Curated Registry of Stevie Wonder's Grooviest Masterpieces
@@ -59,19 +60,27 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=100.0,
         key="E♭ minor",
         time_signature="4/4",
+        full_song_url="https://www.youtube.com/watch?v=0CFuCYNx-1g",
+        youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=kYJqD9t9W98",
         stems=[
             Stem(
                 name="drums",
                 display_name="Drums",
                 description="Stevie Wonder on drums. Legendary 16th-note hi-hat groove with subtle open-hat pushes on the '&' of 2 and 4. Kick pedal squeak is audible and iconic.",
-                query="Stevie Wonder Superstition isolated drums",
+                source_url="https://www.youtube.com/watch?v=8ziGOKNAluY",
             ),
             Stem(
                 name="bass",
                 display_name="TONTO Moog Synth Bass",
                 description="Stevie playing the TONTO modular synthesizer. Plucky, resonant low-end that glues between the clavinet upbeats and kick downbeats.",
-                query="Stevie Wonder Superstition isolated bass",
+                source_url="https://www.youtube.com/watch?v=vJS58xWUef8",
+            ),
+            Stem(
+                name="vocals",
+                display_name="Lead & Backing Vocals",
+                description="Stevie Wonder's raw, electrifying lead vocal track with full dynamics, shouts, and spontaneous groove vocables.",
+                source_url="https://www.youtube.com/watch?v=SxqK9DXlKqE",
             ),
             Stem(
                 name="clavinet1",
@@ -92,12 +101,6 @@ CATALOG: Dict[str, Song] = {
                 display_name="Horns (Sax & Trumpet)",
                 description="Trevor Lawrence (tenor sax) and Steve Madaio (trumpet). Punchy, percussive horn stabs on the turnarounds.",
                 query="Stevie Wonder Superstition isolated horns",
-            ),
-            Stem(
-                name="vocals",
-                display_name="Lead & Backing Vocals",
-                description="Stevie Wonder's raw, electrifying lead vocal track with full dynamics, shouts, and spontaneous groove vocables.",
-                query="Stevie Wonder Superstition isolated vocals",
             ),
         ],
         analysis=GrooveAnalysis(
@@ -135,33 +138,26 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=125.0,
         key="E♭ minor",
         time_signature="4/4",
+        full_song_url="https://www.youtube.com/watch?v=1esf0efHbjM",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=7hR9qQZkLw8",
         stems=[
             Stem(
-                name="drums",
+                name="drums_tambourine",
                 display_name="Drums & Tambourine",
                 description="Stevie Wonder playing all percussion. Relentless forward-driving four-on-the-floor hi-hat feel with urgent tambourine pulses.",
                 query="Stevie Wonder Higher Ground isolated drums",
             ),
             Stem(
-                name="bass",
+                name="moog_bass",
                 display_name="Moog Synth Bass",
                 description="Heavy, bouncy analog synth bass with fast decay. Nails the root E♭ and punctuates the clavinet accents.",
                 query="Stevie Wonder Higher Ground isolated bass",
             ),
             Stem(
-                name="clavinet_left",
-                display_name="Clavinet L (Wah / Envelope)",
-                description="Left-channel Clavinet pumped through a Mu-Tron III auto-wah, generating the distinctive vocal-like squelch on every accent.",
+                name="clavinets",
+                display_name="Clavinets (Wah / Mu-Tron)",
+                description="Hohner Clavinet D6 pumped through a Mu-Tron III auto-wah and envelope filter.",
                 query="Stevie Wonder Higher Ground isolated clavinet",
-                pan=-0.5,
-            ),
-            Stem(
-                name="clavinet_right",
-                display_name="Clavinet R (Chords & Rhythm)",
-                description="Right-channel Clavinet playing rhythmic stabs and driving 16th-note percussive scrapes.",
-                query="Stevie Wonder Higher Ground isolated clavinet right",
-                pan=0.5,
             ),
             Stem(
                 name="vocals",
@@ -209,43 +205,39 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="B major",
         time_signature="4/4",
+        full_song_url="https://www.youtube.com/watch?v=s6bvx41ey20",
+        youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=J3PzN3lK0nE",
         stems=[
             Stem(
                 name="drums",
                 display_name="Drums",
                 description="Raymond Pounds on drums. Extremely clean, joyous swing feel with brilliant ride cymbal articulation and snare cracks.",
-                query="Stevie Wonder Sir Duke isolated drums",
+                source_url="https://www.youtube.com/watch?v=WwK3O9b5KFY",
             ),
             Stem(
                 name="bass",
                 display_name="Bass (Nathan Watts)",
                 description="Nathan Watts on electric bass. One of the most famous bass performances in history; features the legendary lightning-fast unison chromatic breakdown.",
-                query="Stevie Wonder Sir Duke isolated bass",
+                source_url="https://www.youtube.com/watch?v=gexmlOgxMso",
             ),
             Stem(
-                name="keyboards",
-                display_name="Fender Rhodes & Piano",
-                description="Stevie Wonder on Fender Rhodes and acoustic piano, laying down warm jazz-inflected chords and harmonic padding.",
-                query="Stevie Wonder Sir Duke isolated keyboards",
-            ),
-            Stem(
-                name="horns",
-                display_name="Brass Section",
-                description="Hank Redd, Trevor Lawrence (saxophones), Raymond Maldonado, Steve Madaio (trumpets). Iconic hook melodies and unison run.",
-                query="Stevie Wonder Sir Duke isolated horns",
+                name="guitars",
+                display_name="Guitars",
+                description="Crisp funk rhythm guitar comping and unison fills.",
+                source_url="https://www.youtube.com/watch?v=IBa9giTu-jI",
             ),
             Stem(
                 name="vocals",
                 display_name="Vocals",
                 description="Stevie's ecstatic vocal ode to Duke Ellington, Ella Fitzgerald, Count Basie, and Glenn Miller.",
-                query="Stevie Wonder Sir Duke isolated vocals",
+                source_url="https://www.youtube.com/watch?v=G9EE05Czn74",
             ),
             Stem(
-                name="percussion",
-                display_name="Percussion",
-                description="Tambourines, handclaps, and Latin percussion accents highlighting the upbeat energy.",
-                query="Stevie Wonder Sir Duke isolated percussion",
+                name="keyboards",
+                display_name="Fender Rhodes & Keyboards",
+                description="Stevie Wonder on Fender Rhodes and acoustic piano, laying down warm jazz-inflected chords and harmonic padding.",
+                source_url="https://www.youtube.com/watch?v=bOslOGxQX8o",
             ),
         ],
         analysis=GrooveAnalysis(
@@ -278,37 +270,33 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="E♭ minor",
         time_signature="4/4",
+        full_song_url="https://www.youtube.com/watch?v=hYAM3bl192E",
+        youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=wDZFfXn9phg",
         stems=[
             Stem(
                 name="drums",
                 display_name="Drums",
                 description="Raymond Pounds on drums. Straightforward, irresistible four-on-the-floor hi-hat feel with sharp backbeats.",
-                query="Stevie Wonder I Wish isolated drums",
+                source_url="https://www.youtube.com/watch?v=qpnp5BEOcC0",
             ),
             Stem(
                 name="bass",
                 display_name="Walking Bass (Nathan Watts)",
                 description="Nathan Watts on electric bass playing one of the greatest walking/syncopated bass lines in music history (E♭ minor to A♭7).",
-                query="Stevie Wonder I Wish isolated bass",
+                source_url="https://www.youtube.com/watch?v=9PHrzWjPodc",
+            ),
+            Stem(
+                name="guitars",
+                display_name="Guitars",
+                description="Rhythmic funk guitar strums locking in with the walking bassline.",
+                source_url="https://www.youtube.com/watch?v=QYcq9H5sS78",
             ),
             Stem(
                 name="keyboards",
                 display_name="Fender Rhodes & Clavinet",
                 description="Stevie Wonder layering Rhodes comping and sharp Clavinet accents across the chord changes.",
-                query="Stevie Wonder I Wish isolated keyboards",
-            ),
-            Stem(
-                name="horns",
-                display_name="Horn Section",
-                description="Punchy brass hits accentuating the turnaround phrases and nostalgic transitions.",
-                query="Stevie Wonder I Wish isolated horns",
-            ),
-            Stem(
-                name="vocals",
-                display_name="Vocals",
-                description="Stevie's energetic storytelling vocals reflecting on childhood memories.",
-                query="Stevie Wonder I Wish isolated vocals",
+                source_url="https://www.youtube.com/watch?v=6GjOW43QGCY",
             ),
         ],
         analysis=GrooveAnalysis(
