@@ -235,9 +235,14 @@ def cmd_audacity(args):
         print_msg(f"[dim]Existing .aup4 project found: {aup4_files[0].resolve()}[/dim]")
 
     if args.launch:
-        # Determine launch target: if parsed stems exist, pass them
-        parsed_wavs = sorted(parsed_dir.glob("*.wav")) if parsed_dir.exists() else []
-        print_msg(f"[bold yellow]Launching Audacity with multitrack session...[/bold yellow]")
+        # Collect track files in order (full song first, then stems)
+        tracks_to_open = []
+        if parsed_dir.exists() and list(parsed_dir.glob("*.wav")):
+            tracks_to_open = sorted(parsed_dir.glob("*.wav"))
+        elif list(song_dir.glob("*.wav")):
+            tracks_to_open = sorted(song_dir.glob("*.wav"))
+
+        print_msg(f"[bold yellow]Launching Audacity with tracks in order...[/bold yellow]")
         try:
             if args.original:
                 orig_candidates = [
@@ -249,16 +254,16 @@ def cmd_audacity(args):
                 if not orig_file:
                     print_msg(f"[bold red]Original audio file not found in {song_dir}[/bold red]")
                     sys.exit(1)
-                print_msg(f"[cyan]Opening original track for stem separation:[/cyan] {orig_file.name}")
+                print_msg(f"[cyan]Opening original track:[/cyan] {orig_file.name}")
                 launch_audacity(files=[orig_file])
-            elif parsed_wavs and args.use_parsed:
-                print_msg(f"[cyan]Importing {len(parsed_wavs)} parsed track(s) from command line into Audacity:[/cyan]")
-                for pw in parsed_wavs:
-                    print_msg(f"  - {pw.name}")
-                launch_audacity(files=parsed_wavs)
-            elif aup4_files and args.use_project:
+            elif args.use_project and aup4_files:
                 print_msg(f"[cyan]Opening existing project: {aup4_files[0].name}[/cyan]")
                 launch_audacity(target=aup4_files[0])
+            elif tracks_to_open:
+                print_msg(f"[cyan]Opening {len(tracks_to_open)} track(s) in order on the command line:[/cyan]")
+                for idx, t in enumerate(tracks_to_open, 1):
+                    print_msg(f"  [{idx}] {t.name}")
+                launch_audacity(files=tracks_to_open)
             else:
                 launch_audacity(target=lof_path)
             print_msg(f"[bold green]Audacity launched![/bold green]")
