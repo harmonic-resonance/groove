@@ -1,9 +1,9 @@
 groove
 ======
 
-**groove** is a project dedicated to the empirical study, deconstruction, and practice of what makes a rhythm section groove.
+**groove** is a command-line environment and musicological toolkit dedicated to the empirical study, deconstruction, and rehearsal of rhythm section mechanics, pocket, and micro-timing.
 
-Focusing initially on the masterworks of **Stevie Wonder**—the quintessential architect of funk, pocket, and polyrhythmic syncopation—``groove`` provides tools to download isolated multitrack stems from YouTube, catalog their arrangement, study their micro-timing, and generate instant **Audacity multitrack rehearsal sessions**.
+Part of the `harmonic-resonance <https://github.com/harmonic-resonance>`_ platform, ``groove`` manages isolated multitrack audio stems, captures timeline offsets from Audacity 4 projects, renders chord charts via Chord Sheet Markup Language (CSML), and organizes deep song studies across legendary rhythm sections.
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
    :target: https://github.com/harmonic-resonance/groove/blob/main/LICENSE
@@ -12,95 +12,164 @@ Focusing initially on the masterworks of **Stevie Wonder**—the quintessential 
 Features
 --------
 
-- **Curated Groove Catalog**: Detailed metadata, tempo (BPM), key, time signatures, and stem breakdown for classic Stevie Wonder recordings:
-  - *Superstition* (*Talking Book*, 1972)
-  - *Higher Ground* (*Innervisions*, 1973)
-  - *Sir Duke* (*Songs in the Key of Life*, 1976)
-  - *I Wish* (*Songs in the Key of Life*, 1976)
-  - *Living for the City* (*Innervisions*, 1973)
-  - *Isn't She Lovely* (*Songs in the Key of Life*, 1976)
+- **Context-Aware Scoping**: The CLI automatically detects where it is being run:
+  - **Song scope** (inside ``tracks/<artist>/<song>/``): commands like ``groove info``, ``groove study``, ``groove chords``, ``groove tracks``, ``groove open``, ``groove align``, and ``groove pad`` run directly on that song without requiring ``--artist`` or ``--song`` flags.
+  - **Artist scope** (inside ``tracks/<artist>/``): commands like ``groove list`` and ``groove new-song`` automatically scope to that artist.
+  - **Root scope** (repository root): operates across the complete catalog.
 
-- **Stem Downloader & Regeneration**: Automated audio retrieval from YouTube (`sources.csv`) using ``yt-dlp`` and ``ffmpeg`` into clean, uncompressed WAV or lossless formats. Audio files can be regenerated on demand at any time with a single command.
+- **Native Audacity 4 Integration (``groove open``)**:
+  - Intelligently launches Audacity for rehearsal and study.
+  - Automatically detects if a saved ``<song>.aup4`` Audacity project exists and opens it directly.
+  - If no project file exists, automatically loads all numbered audio tracks (``00_*.wav``, ``01_*.wav``, ...) into Audacity in order at timeline :math:`t=0`.
+  - Completely replaces legacy shell launch scripts.
 
-- **Audacity 4 Multitrack Launcher (`launch.sh`)**: Direct multi-file command-line loader tailored for Audacity 4. Automatically passes files in order (master reference mix as Track 1, followed by isolated stems) to create a parallel-track session.
+- **Self-Contained Song Studies**: Every song in ``tracks/<artist>/<song>/`` contains:
+  - ``README.md``: In-depth musicological breakdown of tempo, key, meter, pocket feel, micro-timing, interlocking rhythms, and practice tips.
+  - ``tracks.csv``: Streamlined stem registry containing track numbers, stem names, display names, source URLs, video IDs, durations, source types, and start offsets.
+  - ``chords.csml``: Structured chord progression and lyrics in Chord Sheet Markup Language (CSML), compatible with `harmonic-resonance/chordulator <https://github.com/harmonic-resonance/chordulator>`_.
 
-- **Lead-In & Track Offset Alignment**: Solves the alignment problem where isolated tracks have intro lead-ins or count-ins not present in the master song mix. Applies sample-accurate lead-in trimming and delay padding so all tracks start aligned at $t=0$, ready to play.
+- **Decoupled Alignment & Track Equalization**:
+  - ``groove align``: Inspects the SQLite database inside an Audacity 4 ``.aup4`` project, computes microsecond-accurate clip start offsets, and syncs them to ``tracks.csv``.
+  - ``groove pad``: Uses ``ffmpeg`` to insert start silence (``adelay``) and pad the tail (``apad``) so all stems share the exact same duration and sample count. Stems load at :math:`t=0` in locked pocket immediately.
 
-- **Audacity Project Offset Sync (`groove align`)**: Directly inspects `.aup4` SQLite project databases to extract the precise timeline offsets dialed in by ear, automatically recording them back into `sources.csv`.
+- **Zero Audio in Git & On-Demand Regeneration**:
+  - Audio stems (``*.wav``, ``*.mp3``, ``*.flac``) and SQLite projects (``*.aup4*``) are strictly ignored in git.
+  - All stems can be downloaded or regenerated from scratch at any time via ``groove download`` or ``groove regenerate``.
 
-- **Rehearsal & Play-Along Workflow**:
-  - **Solo stems** to analyze individual parts (e.g. Stevie's isolated Clavinet damping or hi-hat micro-accents).
-  - **Mute stems** to play along (e.g., mute drums to rehearse on drum kit; mute bass to lock in with the drums on bass; mute clavinet to practice the funk rhythm keys).
-  - **Tempo manipulation**: Slow down tricky passages in Audacity without altering pitch.
-  - **Looping**: Rehearse groove loops indefinitely to build muscle memory and internalize the pocket.
-
-- **Groove Musicology & Analysis**: In-depth analysis of interlocking clavinet parts, ghost notes, Moog bass synth dynamics, Nathan Watts' walking basslines, and polyrhythmic counterpoint.
+- **Interactive Scaffolding**:
+  - Quickly scaffold new artists (``groove new-artist``), song studies (``groove new-song``), or add stems (``groove add-track``).
 
 Installation
 ------------
 
-Clone the repository and install in editable mode:
+Groove uses `uv <https://github.com/astral-sh/uv>`_ for Python package and tool management.
+
+Install globally as a CLI tool:
 
 .. code-block:: bash
 
-   git clone https://github.com/harmonic-resonance/groove.git
-   cd groove
-   pip install -e .
+   uv tool install --editable .
+
+Or create and activate a local development virtual environment:
+
+.. code-block:: bash
+
+   uv venv
+   source .venv/bin/activate
+   uv pip install -e .
 
 External Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-Ensure you have ``ffmpeg`` and ``audacity`` (or the Audacity 4 AppImage in ``~/AppImages/``) installed:
+Ensure you have ``ffmpeg`` and ``audacity`` installed:
 
 .. code-block:: bash
 
    # On Debian / Ubuntu
    sudo apt install ffmpeg audacity
 
-CLI Usage
----------
+Directory Structure
+-------------------
 
-1. View all tracked sources, URLs, and time alignment offsets:
+The catalog is organized hierarchically by artist and song:
+
+.. code-block:: text
+
+   tracks/
+   └── stevie-wonder/
+       ├── README.md                      # Artist overview & rhythm section philosophy
+       ├── higher-ground/
+       │   ├── README.md                  # Pocket breakdown, micro-timing, practice guide
+       │   ├── chords.csml                # CSML chord progression and lyrics
+       │   ├── tracks.csv                 # Stem registry, URLs, & alignment offsets
+       │   ├── 00_full_song.wav           # Equalized reference mix (generated locally)
+       │   ├── 01_drums_tambourine.wav    # Isolated drums & tambourine (generated locally)
+       │   ├── 02_moog_bass.wav           # Moog synth bass (generated locally)
+       │   ├── 03_clavinets.wav           # Dual clavinets (generated locally)
+       │   └── 04_vocals.wav              # Lead & backing vocals (generated locally)
+       ├── superstition/
+       ├── sir-duke/
+       └── i-wish/
+
+CLI Usage & Workflow
+---------------------
+
+Context-Aware Song Workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Navigate into any song directory to execute commands in-context without repetitive arguments:
 
 .. code-block:: bash
 
-   groove sources [song_id]
+   cd tracks/stevie-wonder/higher-ground
 
-2. Regenerate an entire multitrack session with offsets applied:
+   # Inspect metadata and registered stems
+   groove info
+
+   # Read the groove pocket analysis and rehearsal guide
+   groove study
+
+   # View chord sheet and lyrics (CSML format)
+   groove chords
+
+   # View stem registry table with URLs and timing offsets
+   groove tracks
+
+   # Open directly in Audacity 4
+   groove open
+
+   # Extract alignment offsets from higher-ground.aup4 into tracks.csv
+   groove align --save
+
+   # Pad start offsets and equalize all track lengths
+   groove pad
+
+Artist Scope Commands
+~~~~~~~~~~~~~~~~~~~~~
+
+Navigate into an artist directory:
 
 .. code-block:: bash
 
-   groove regenerate higher-ground
+   cd tracks/stevie-wonder
 
-3. Inspect and extract alignment offsets from a saved Audacity 4 project:
+   # List all studies for Stevie Wonder
+   groove list
 
-.. code-block:: bash
+   # Scaffold a new song under Stevie Wonder
+   groove new-song "living-for-the-city" --title "Living for the City" --bpm 99 --key "F#m"
 
-   groove align higher-ground --save
+Repository-Wide Commands
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-4. Generate the Audacity 4 launch script:
-
-.. code-block:: bash
-
-   groove audacity higher-ground --launch
-
-5. Rehearse with Audacity:
-
-In the song directory (e.g. ``tracks/stevie-wonder/higher-ground``):
+From the repository root:
 
 .. code-block:: bash
 
-   ./launch.sh            # Load all tracks in order, pre-aligned and ready to play
-   ./launch.sh --project  # Open the saved .aup4 project directly
+   # List all groove studies across all artists
+   groove list
+
+   # Create a new artist
+   groove new-artist "d-angelo" --name "D'Angelo"
+
+   # Create a new song study
+   groove new-song "spanish-joint" --artist "d-angelo" --title "Spanish Joint" --bpm 108 --key "Dm"
+
+   # Register an isolated track URL into tracks.csv
+   groove add-track "drums" "Questlove Drums" "https://www.youtube.com/watch?v=..." --song spanish-joint --artist d-angelo
+
+   # Regenerate audio stems from scratch
+   groove regenerate higher-ground --artist stevie-wonder
 
 Rehearsal with Audacity
 -----------------------
 
-When launched, Audacity imports ``00_full_song.wav`` as Track 1 followed by each stem track. Because the stems are pre-aligned at $t=0$, hitting Spacebar immediately plays the entire groove in lockstep:
-- Hit **Mute** (M) on any track you want to play yourself.
-- Hit **Solo** (S) to hear only that instrument.
-- Use **Audacity's Transport > Loop** to loop specific sections (like the unison lick in *Sir Duke*).
-- Use **Effect > Pitch and Tempo > Change Tempo** to slow down without changing pitch.
+Running ``groove open`` loads the session directly into Audacity:
+
+- **Mute stems** (``M``) to play that instrument live in the pocket with the original band (e.g., mute bass to rehearse your basslines against Stevie's drums and clavinet).
+- **Solo stems** (``S``) to isolate micro-articulations, ghost notes, and subtle phrasing.
+- **Loop sections** to build muscle memory around complex licks.
+- **Slow down tempo** (via Audacity's *Change Tempo* effect) to dissect intricate 16th-note subdivisions without shifting pitch.
 
 Contributing
 ------------
