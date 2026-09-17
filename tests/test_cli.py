@@ -47,6 +47,24 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(args.command, "sources")
         self.assertEqual(args.song, "sir-duke")
 
+    def test_parser_regenerate(self):
+        args = self.parser.parse_args(["regenerate", "higher-ground", "--dry-run", "--force"])
+        self.assertEqual(args.command, "regenerate")
+        self.assertEqual(args.song, "higher-ground")
+        self.assertTrue(args.dry_run)
+        self.assertTrue(args.force)
+
+    def test_parser_regenerate_all(self):
+        args = self.parser.parse_args(["regenerate", "--all"])
+        self.assertEqual(args.command, "regenerate")
+        self.assertTrue(args.all)
+
+    def test_parser_align(self):
+        args = self.parser.parse_args(["align", "higher-ground", "--save"])
+        self.assertEqual(args.command, "align")
+        self.assertEqual(args.song, "higher-ground")
+        self.assertTrue(args.save)
+
 
 if __name__ == "__main__":
     unittest.main()

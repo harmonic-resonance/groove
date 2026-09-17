@@ -15,9 +15,9 @@ The vision of **groove** is to build a comprehensive platform for understanding,
   - *Living for the City* (Drums, TONTO Moog, Fender Rhodes, Vocals)
   - *Isn't She Lovely* (Drums, Bass, Fender Rhodes, Harmonica, Vocals)
 - [x] Audio stem downloader leveraging `yt-dlp` and `ffmpeg` to fetch high-fidelity WAV/FLAC/MP3 audio.
-- [x] Audacity multitrack session generator (`.lof` List of Files format) for instant aligned multitrack project creation.
+- [x] Audacity 4 multitrack launch script generator (`launch.sh`) and deterministic session regenerator with lead-in offset alignment.
 - [x] Groove musicology notes and rehearsal recommendations for musicians.
-- [x] CLI commands: `list`, `info`, `study`, `download`, `audacity`.
+- [x] CLI commands: `sources`, `regenerate`, `align`, `list`, `info`, `study`, `download`, `audacity`.
 
 ---
 

@@ -20,9 +20,13 @@ Features
   - *Living for the City* (*Innervisions*, 1973)
   - *Isn't She Lovely* (*Songs in the Key of Life*, 1976)
 
-- **Stem Downloader**: Automated audio extraction using ``yt-dlp`` and ``ffmpeg`` into clean, uncompressed or lossless formats (WAV, FLAC, MP3).
+- **Stem Downloader & Regeneration**: Automated audio retrieval from YouTube (`sources.csv`) using ``yt-dlp`` and ``ffmpeg`` into clean, uncompressed WAV or lossless formats. Audio files can be regenerated on demand at any time with a single command.
 
-- **Audacity Multitrack Session Generator**: Instant creation of Audacity ``.lof`` (List of Files) session scripts. Opening a ``.lof`` file automatically places each isolated stem on its own aligned track in a single Audacity project window.
+- **Audacity 4 Multitrack Launcher (`launch.sh`)**: Direct multi-file command-line loader tailored for Audacity 4. Automatically passes files in order (master reference mix as Track 1, followed by isolated stems) to create a parallel-track session.
+
+- **Lead-In & Track Offset Alignment**: Solves the alignment problem where isolated tracks have intro lead-ins or count-ins not present in the master song mix. Applies sample-accurate lead-in trimming and delay padding so all tracks start aligned at $t=0$, ready to play.
+
+- **Audacity Project Offset Sync (`groove align`)**: Directly inspects `.aup4` SQLite project databases to extract the precise timeline offsets dialed in by ear, automatically recording them back into `sources.csv`.
 
 - **Rehearsal & Play-Along Workflow**:
   - **Solo stems** to analyze individual parts (e.g. Stevie's isolated Clavinet damping or hi-hat micro-accents).
@@ -46,7 +50,7 @@ Clone the repository and install in editable mode:
 External Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-Ensure you have ``ffmpeg`` and ``audacity`` installed on your system:
+Ensure you have ``ffmpeg`` and ``audacity`` (or the Audacity 4 AppImage in ``~/AppImages/``) installed:
 
 .. code-block:: bash
 
@@ -56,52 +60,43 @@ Ensure you have ``ffmpeg`` and ``audacity`` installed on your system:
 CLI Usage
 ---------
 
-1. List available groove studies in the catalog:
+1. View all tracked sources, URLs, and time alignment offsets:
 
 .. code-block:: bash
 
-   groove list
+   groove sources [song_id]
 
-2. View details, tempo, key, and stem breakdown for a song:
-
-.. code-block:: bash
-
-   groove info superstition
-
-3. Read the groove analysis, pocket notes, and rehearsal tips:
+2. Regenerate an entire multitrack session with offsets applied:
 
 .. code-block:: bash
 
-   groove study higher-ground
+   groove regenerate higher-ground
 
-4. Download isolated tracks:
-
-.. code-block:: bash
-
-   groove download superstition --format wav
-
-5. Generate an Audacity multitrack session and optionally open Audacity:
+3. Inspect and extract alignment offsets from a saved Audacity 4 project:
 
 .. code-block:: bash
 
-   groove audacity superstition --launch
+   groove align higher-ground --save
+
+4. Generate the Audacity 4 launch script:
+
+.. code-block:: bash
+
+   groove audacity higher-ground --launch
+
+5. Rehearse with Audacity:
+
+In the song directory (e.g. ``tracks/stevie-wonder/higher-ground``):
+
+.. code-block:: bash
+
+   ./launch.sh            # Load all tracks in order, pre-aligned and ready to play
+   ./launch.sh --project  # Open the saved .aup4 project directly
 
 Rehearsal with Audacity
 -----------------------
 
-Audacity natively supports ``.lof`` files. When you run ``groove audacity <song>``, a file named ``tracks/<artist>/<song>/<song>.lof`` is created containing directives such as:
-
-.. code-block:: text
-
-   window offset 0
-   file "01_drums.wav"
-   file "02_bass.wav"
-   file "03_clavinet1.wav"
-   file "04_clavinet2.wav"
-   file "05_horns.wav"
-   file "06_vocals.wav"
-
-Opening this file in Audacity opens all stems in perfect synchronization. From here, you can:
+When launched, Audacity imports ``00_full_song.wav`` as Track 1 followed by each stem track. Because the stems are pre-aligned at $t=0$, hitting Spacebar immediately plays the entire groove in lockstep:
 - Hit **Mute** (M) on any track you want to play yourself.
 - Hit **Solo** (S) to hear only that instrument.
 - Use **Audacity's Transport > Loop** to loop specific sections (like the unison lick in *Sir Duke*).

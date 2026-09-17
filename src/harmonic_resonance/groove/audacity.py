@@ -1,68 +1,73 @@
 """
-audacity.py - Audacity multitrack session generator and launcher (.lof format).
+audacity.py - Audacity 4 multitrack session launcher, project inspector, and offset extractor.
 """
 
 import os
+import re
 import shutil
+import sqlite3
+import struct
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from .catalog import Song, Stem
 from .downloader import get_song_directory, get_stem_filename
 
 
-def generate_audacity_lof(
-    song: Song,
-    base_dir: Optional[Path] = None,
-    audio_format: str = "wav",
-    relative_paths: bool = True,
-) -> Path:
+def extract_offsets_from_aup4(aup4_path: Path) -> Dict[str, float]:
     """
-    Generate an Audacity List of Files (.lof) script for a song.
+    Extract track clip offsets (in seconds) from an Audacity 4 .aup4 project database.
+
+    Returns a dictionary mapping track name (e.g. '00_full_song', '01_drums') to its
+    start offset in seconds.
+    """
+    p = Path(aup4_path)
+    if not p.exists():
+        raise FileNotFoundError(f"Audacity project file not found: {p}")
+
+    con = sqlite3.connect(str(p))
+    cur = con.cursor()
+    row = cur.execute("SELECT doc FROM project").fetchone()
+    con.close()
+    if not row or not row[0]:
+        return {}
+
+    doc = row[0]
+    offsets = {}
+
+    # Tag 51 is waveclip (0x33 0x00), tag 52 is offset (0x34 0x00) with 0x0a double type marker
+    pattern = rb"\x33\x00\x0a\x34\x00(.{8})"
+    utf32_pattern = rb"(?:0\x00\x00\x00[0-9]\x00\x00\x00_\x00\x00\x00(?:[a-zA-Z0-9_]\x00\x00\x00)+)"
+
+    for m in re.finditer(pattern, doc):
+        val = struct.unpack("<d", m.group(1))[0]
+        sub = doc[:m.start()]
+        names = list(re.finditer(utf32_pattern, sub))
+        if names:
+            track_name = names[-1].group(0).decode("utf-32-le")
+            if track_name not in offsets:
+                offsets[track_name] = round(val, 6)
+
+    return offsets
+
+
+def calculate_relative_offsets(offsets: Dict[str, float], ref_key: str = "00_full_song") -> Dict[str, Dict[str, float]]:
+    """
+    Calculate lead_in_trim and pad_delay relative to the reference track.
     
-    When opened in Audacity (File -> Open or audacity session.lof), Audacity
-    places each stem on its own aligned audio track in a single multitrack window.
+    If delta < 0: track has lead-in before song start -> lead_in_trim = -delta
+    If delta > 0: track enters after song start -> pad_delay = delta
     """
-    song_dir = get_song_directory(song, base_dir)
-    lof_filename = f"{song.id}.lof"
-    lof_path = song_dir / lof_filename
-
-    lines: List[str] = [
-        f"# ========================================================",
-        f"# Audacity Multitrack Session: {song.title}",
-        f"# Artist: {song.artist} ({song.year})",
-        f"# Album:  {song.album}",
-        f"# Tempo:  {song.tempo_bpm} BPM | Key: {song.key} | Time: {song.time_signature}",
-        f"# ========================================================",
-        f"# Rehearsal Instructions:",
-        f"#   - Solo (S) a track to dissect individual performance nuances.",
-        f"#   - Mute (M) a track to play your instrument along with the original pocket.",
-        f"#   - Select a bar and press Shift+Space (or Transport -> Loop) to loop.",
-        f"#   - Use Effect -> Pitch and Tempo -> Change Tempo to practice at slower speeds.",
-        f"# ========================================================",
-        "",
-        "window offset 0",
-    ]
-
-    for idx, stem in enumerate(song.stems, start=1):
-        filename = get_stem_filename(idx, stem, audio_format)
-        target_file = song_dir / filename
-
-        # Add comment with stem details
-        lines.append(f"# Track {idx}: {stem.display_name}")
-        lines.append(f"# {stem.description}")
-
-        if relative_paths:
-            file_entry = f'file "{filename}"'
+    ref_offset = offsets.get(ref_key, 0.0)
+    relative = {}
+    for track_name, offset in offsets.items():
+        delta = round(offset - ref_offset, 6)
+        if delta < 0:
+            relative[track_name] = {"lead_in_trim": abs(delta), "pad_delay": 0.0, "delta": delta}
         else:
-            file_entry = f'file "{target_file.resolve()}"'
-
-        lines.append(file_entry)
-        lines.append("")
-
-    lof_path.write_text("\n".join(lines), encoding="utf-8")
-    return lof_path
+            relative[track_name] = {"lead_in_trim": 0.0, "pad_delay": delta, "delta": delta}
+    return relative
 
 
 def generate_launch_script(

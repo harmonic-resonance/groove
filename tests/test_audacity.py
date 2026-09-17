@@ -1,5 +1,5 @@
 """
-test_audacity.py - Unit tests for Audacity LOF generator.
+test_audacity.py - Unit tests for Audacity 4 launcher and offset extractor.
 """
 
 import tempfile
@@ -7,7 +7,11 @@ import unittest
 from pathlib import Path
 
 from harmonic_resonance.groove.catalog import get_song
-from harmonic_resonance.groove.audacity import generate_audacity_lof, generate_launch_script
+from harmonic_resonance.groove.audacity import (
+    generate_launch_script,
+    extract_offsets_from_aup4,
+    calculate_relative_offsets,
+)
 
 
 class TestAudacity(unittest.TestCase):
@@ -17,24 +21,6 @@ class TestAudacity(unittest.TestCase):
 
     def tearDown(self):
         self.temp_dir.cleanup()
-
-    def test_generate_superstition_lof(self):
-        song = get_song("superstition")
-        self.assertIsNotNone(song)
-
-        lof_path = generate_audacity_lof(song, base_dir=self.base_dir, audio_format="wav")
-        self.assertTrue(lof_path.exists())
-        self.assertEqual(lof_path.name, "superstition.lof")
-
-        content = lof_path.read_text(encoding="utf-8")
-        self.assertIn("window offset 0", content)
-        self.assertIn("Superstition", content)
-        self.assertIn('file "01_drums.wav"', content)
-        self.assertIn('file "02_bass.wav"', content)
-        self.assertIn('file "03_vocals.wav"', content)
-        self.assertIn('file "04_clavinet1.wav"', content)
-        self.assertIn('file "05_clavinet2.wav"', content)
-        self.assertIn('file "06_horns.wav"', content)
 
     def test_generate_launch_script(self):
         song = get_song("higher-ground")
@@ -52,16 +38,35 @@ class TestAudacity(unittest.TestCase):
         self.assertIn("find . -maxdepth 1", content)
         self.assertIn('exec "$AUDACITY" "${TRACKS[@]}"', content)
 
-    def test_generate_flac_format(self):
-        song = get_song("higher-ground")
-        self.assertIsNotNone(song)
+    def test_calculate_relative_offsets(self):
+        sample_offsets = {
+            "00_full_song": 3.480500,
+            "01_drums_tambourine": 4.313854,
+            "02_moog_bass": 11.016146,
+            "03_clavinets": 0.000000,
+            "04_vocals": 4.015187,
+        }
+        rel = calculate_relative_offsets(sample_offsets, ref_key="00_full_song")
+        self.assertIn("00_full_song", rel)
+        self.assertAlmostEqual(rel["00_full_song"]["lead_in_trim"], 0.0)
+        self.assertAlmostEqual(rel["00_full_song"]["pad_delay"], 0.0)
 
-        lof_path = generate_audacity_lof(song, base_dir=self.base_dir, audio_format="flac")
-        self.assertTrue(lof_path.exists())
+        # 03_clavinets has delta = -3.4805 -> lead_in_trim = 3.4805
+        self.assertAlmostEqual(rel["03_clavinets"]["lead_in_trim"], 3.4805, places=4)
+        self.assertAlmostEqual(rel["03_clavinets"]["pad_delay"], 0.0)
 
-        content = lof_path.read_text(encoding="utf-8")
-        self.assertIn('file "01_drums_tambourine.flac"', content)
-        self.assertIn('file "02_moog_bass.flac"', content)
+        # 01_drums has delta = +0.833354 -> pad_delay = 0.833354
+        self.assertAlmostEqual(rel["01_drums_tambourine"]["pad_delay"], 0.833354, places=4)
+        self.assertAlmostEqual(rel["01_drums_tambourine"]["lead_in_trim"], 0.0)
+
+    def test_extract_offsets_from_existing_project(self):
+        project_file = Path("tracks/stevie-wonder/higher-ground/higher-ground.aup4")
+        if project_file.exists():
+            offsets = extract_offsets_from_aup4(project_file)
+            self.assertIn("00_full_song", offsets)
+            self.assertIn("03_clavinets", offsets)
+            self.assertAlmostEqual(offsets["00_full_song"], 3.4805, places=4)
+            self.assertAlmostEqual(offsets["03_clavinets"], 0.0, places=4)
 
 
 if __name__ == "__main__":

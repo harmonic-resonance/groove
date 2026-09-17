@@ -17,9 +17,20 @@ except ImportError:
     console = None
 
 
-from .catalog import CATALOG, get_song, list_songs, load_sources_from_csv
-from .downloader import download_song_stems, get_song_directory, slice_audio_file
-from .audacity import generate_audacity_lof, generate_launch_script, launch_audacity
+from .catalog import CATALOG, get_song, list_songs, load_sources_from_csv, save_sources_to_csv
+from .downloader import (
+    download_song_stems,
+    get_song_directory,
+    slice_audio_file,
+    regenerate_song_from_sources,
+    apply_audio_offset,
+)
+from .audacity import (
+    generate_launch_script,
+    extract_offsets_from_aup4,
+    calculate_relative_offsets,
+    launch_audacity,
+)
 from .study import get_groove_study, GROOVE_FOUNDATIONS
 
 
@@ -157,8 +168,8 @@ def cmd_download(args):
             logger=print_msg,
         )
         print_msg(f"\n[bold green]Success![/bold green] Processed {len(downloaded)} stems.")
-        lof_path = generate_audacity_lof(song, base_dir=base_dir, audio_format=audio_format)
-        print_msg(f"[bold green]Audacity session generated:[/bold green] {lof_path}")
+        launch_script = generate_launch_script(song, base_dir=base_dir)
+        print_msg(f"[bold green]Audacity launcher generated:[/bold green] {launch_script}")
     except Exception as e:
         print_msg(f"[bold red]Download error:[/bold red] {e}")
         sys.exit(1)
@@ -198,23 +209,11 @@ def cmd_slice(args):
     print_msg(f"[bold cyan]Slicing stems from:[/bold cyan] {input_audio.name} ({input_audio.stat().st_size / (1024*1024):.1f} MB)")
     created = slice_audio_file(input_audio, song.deconstruction_slices, out_dir, logger=print_msg)
 
-    # Generate LOF file for the parsed stems
-    lof_path = out_dir / f"{song.id}-stems.lof"
-    lof_lines = [
-        f"# Audacity Multitrack Session: {song.title} (Parsed Stems)",
-        f"# Artist: {song.artist} ({song.year})",
-        "window offset 0",
-    ]
-    for c in created:
-        lof_lines.append(f'file "{c.name}"')
-    lof_path.write_text("\n".join(lof_lines), encoding="utf-8")
-
     print_msg(f"\n[bold green]Success![/bold green] Sliced {len(created)} stems into: {out_dir}")
-    print_msg(f"[bold green]LOF session created:[/bold green] {lof_path}")
 
 
 def cmd_audacity(args):
-    """Generate Audacity .lof session and optionally launch Audacity."""
+    """Generate Audacity 4 launch script and optionally launch Audacity with tracks in order."""
     song = get_song(args.song)
     if not song:
         print_msg(f"[bold red]Error:[/bold red] Song '{args.song}' not found.")
@@ -222,17 +221,14 @@ def cmd_audacity(args):
 
     base_dir = Path(args.output) if args.output else None
     song_dir = get_song_directory(song, base_dir)
-    audio_format = args.format.lower()
 
     # Check if user passed an explicit .aup4 project or parsed stems
     parsed_dir = song_dir / "parsed_stems"
     aup4_files = list(song_dir.glob("*.aup4")) + list(song_dir.glob("*.aup4.aup4"))
 
-    lof_path = generate_audacity_lof(song, base_dir=base_dir, audio_format=audio_format)
     launch_script = generate_launch_script(song, base_dir=base_dir)
-    print_msg(f"[bold green]Generated Audacity multitrack session files:[/bold green]")
-    print_msg(f"  Launch Script: [cyan]{launch_script.resolve()}[/cyan]")
-    print_msg(f"  LOF Script:    [dim]{lof_path.resolve()}[/dim]")
+    print_msg(f"[bold green]Generated Audacity multitrack launch script:[/bold green]")
+    print_msg(f"  [cyan]{launch_script.resolve()}[/cyan]")
     if aup4_files:
         print_msg(f"[dim]Existing .aup4 project found: {aup4_files[0].resolve()}[/dim]")
 
@@ -267,7 +263,7 @@ def cmd_audacity(args):
                     print_msg(f"  [{idx}] {t.name}")
                 launch_audacity(files=tracks_to_open)
             else:
-                launch_audacity(target=lof_path)
+                print_msg(f"[bold yellow]No audio tracks found to launch in {song_dir}.[/bold yellow]")
             print_msg(f"[bold green]Audacity launched![/bold green]")
         except Exception as e:
             print_msg(f"[bold red]Failed to launch Audacity:[/bold red] {e}")
@@ -296,30 +292,136 @@ def cmd_sources(args):
         table.add_column("#", justify="right", style="yellow")
         table.add_column("Stem Name", style="bold green")
         table.add_column("Display Name", style="white")
+        table.add_column("Trim", justify="right", style="dim cyan")
+        table.add_column("Pad", justify="right", style="dim blue")
         table.add_column("Dur", justify="center", style="dim")
         table.add_column("Type", style="magenta")
         table.add_column("URL", style="blue")
 
         for s in sources:
+            trim_val = float(s.get("lead_in_trim", 0.0) or 0.0)
+            pad_val = float(s.get("pad_delay", 0.0) or 0.0)
             table.add_row(
                 s.get("song_id", ""),
                 s.get("track_number", ""),
                 s.get("stem_name", ""),
                 s.get("display_name", ""),
+                f"{trim_val:.4f}s" if trim_val > 0 else "-",
+                f"{pad_val:.4f}s" if pad_val > 0 else "-",
                 s.get("duration", ""),
                 s.get("source_type", ""),
                 s.get("url", ""),
             )
         console.print(table)
     else:
-        print("\n==========================================================================================")
+        print("\n===========================================================================================================")
         print(" GROOVE AUDIO SOURCES (sources.csv)")
-        print("==========================================================================================")
-        print(f" {'SONG':<15} | {'#':<2} | {'STEM':<18} | {'DUR':<5} | {'TYPE':<14} | {'URL'}")
-        print("------------------------------------------------------------------------------------------")
+        print("===========================================================================================================")
+        print(f" {'SONG':<15} | {'#':<2} | {'STEM':<18} | {'TRIM':<8} | {'PAD':<8} | {'DUR':<5} | {'TYPE':<14} | {'URL'}")
+        print("-----------------------------------------------------------------------------------------------------------")
         for s in sources:
-            print(f" {s.get('song_id',''):<15} | {s.get('track_number',''):<2} | {s.get('stem_name',''):<18} | {s.get('duration',''):<5} | {s.get('source_type',''):<14} | {s.get('url','')}")
-        print("==========================================================================================\n")
+            trim_val = float(s.get("lead_in_trim", 0.0) or 0.0)
+            pad_val = float(s.get("pad_delay", 0.0) or 0.0)
+            trim_str = f"{trim_val:.3f}s" if trim_val > 0 else "-"
+            pad_str = f"{pad_val:.3f}s" if pad_val > 0 else "-"
+            print(f" {s.get('song_id',''):<15} | {s.get('track_number',''):<2} | {s.get('stem_name',''):<18} | {trim_str:<8} | {pad_str:<8} | {s.get('duration',''):<5} | {s.get('source_type',''):<14} | {s.get('url','')}")
+        print("===========================================================================================================\n")
+
+
+def cmd_regenerate(args):
+    """Regenerate multitrack audio stems and launch script from sources.csv."""
+    song_ids = []
+    if args.song:
+        song_ids = [args.song.lower()]
+    elif args.all:
+        sources = load_sources_from_csv(getattr(args, "csv", None))
+        song_ids = sorted(list({s["song_id"] for s in sources}))
+    else:
+        print_msg("[bold yellow]Specify a song ID or --all to regenerate all songs.[/bold yellow]")
+        return
+
+    base_dir = Path(args.output) if args.output else None
+    for sid in song_ids:
+        print_msg(f"\n[bold cyan]====================================================[/bold cyan]")
+        print_msg(f"[bold cyan]Regenerating session for: {sid}[/bold cyan]")
+        print_msg(f"[bold cyan]====================================================[/bold cyan]")
+        try:
+            paths = regenerate_song_from_sources(
+                song_id=sid,
+                base_dir=base_dir,
+                audio_format=args.format,
+                dry_run=args.dry_run,
+                force=args.force,
+                logger=print_msg,
+            )
+            print_msg(f"[bold green]Done![/bold green] Processed {len(paths)} track(s) for '{sid}'.")
+        except Exception as e:
+            print_msg(f"[bold red]Error regenerating '{sid}':[/bold red] {e}")
+
+
+def cmd_align(args):
+    """Inspect and extract track offsets from an Audacity .aup4 project and update sources.csv."""
+    song = get_song(args.song)
+    base_dir = Path(args.output) if args.output else None
+    song_dir = get_song_directory(song, base_dir) if song else Path("tracks") / "stevie-wonder" / args.song
+
+    aup4_files = list(song_dir.glob("*.aup4"))
+    if not aup4_files:
+        print_msg(f"[bold red]Error:[/bold red] No .aup4 project file found in {song_dir}")
+        sys.exit(1)
+
+    project_file = aup4_files[0]
+    print_msg(f"[bold cyan]Reading project database:[/bold cyan] {project_file.name}")
+    raw_offsets = extract_offsets_from_aup4(project_file)
+    if not raw_offsets:
+        print_msg("[bold red]No waveclip offsets found in project database.[/bold red]")
+        return
+
+    relative = calculate_relative_offsets(raw_offsets, ref_key="00_full_song")
+
+    if console:
+        table = Table(title=f"[bold magenta]Extracted Project Offsets ({project_file.name})[/bold magenta]")
+        table.add_column("Track", style="cyan")
+        table.add_column("Timeline Offset", justify="right", style="yellow")
+        table.add_column("Rel to Full Song", justify="right", style="magenta")
+        table.add_column("Lead-in Trim", justify="right", style="green")
+        table.add_column("Pad Delay", justify="right", style="blue")
+
+        for track_name, offset in sorted(raw_offsets.items()):
+            rel_info = relative.get(track_name, {})
+            trim = rel_info.get("lead_in_trim", 0.0)
+            pad = rel_info.get("pad_delay", 0.0)
+            delta = rel_info.get("delta", 0.0)
+            table.add_row(
+                track_name,
+                f"{offset:.4f}s",
+                f"{delta:+.4f}s",
+                f"{trim:.4f}s" if trim > 0 else "-",
+                f"{pad:.4f}s" if pad > 0 else "-",
+            )
+        console.print(table)
+    else:
+        print(f"\nExtracted Offsets from {project_file.name}:")
+        for track_name, offset in sorted(raw_offsets.items()):
+            rel_info = relative.get(track_name, {})
+            print(f"  {track_name:<24} offset={offset:.4f}s (rel={rel_info.get('delta',0.0):+.4f}s, trim={rel_info.get('lead_in_trim',0.0):.4f}s, pad={rel_info.get('pad_delay',0.0):.4f}s)")
+
+    if getattr(args, "save", False):
+        sources = load_sources_from_csv(getattr(args, "csv", None))
+        updated_count = 0
+        for s in sources:
+            if s.get("song_id", "").lower() == args.song.lower():
+                trk_num = int(s.get("track_number", 0))
+                stem_name = s.get("stem_name", "")
+                for tname, rel_info in relative.items():
+                    if tname.startswith(f"{trk_num:02d}_") or stem_name in tname:
+                        s["lead_in_trim"] = f"{rel_info['lead_in_trim']:.6f}"
+                        s["pad_delay"] = f"{rel_info['pad_delay']:.6f}"
+                        updated_count += 1
+                        break
+        save_sources_to_csv(sources, getattr(args, "csv", None))
+        print_msg(f"\n[bold green]Success![/bold green] Saved {updated_count} track offset(s) into sources.csv!")
+
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -369,10 +471,29 @@ def build_parser() -> argparse.ArgumentParser:
     p_slice.add_argument("--subfolder", default="parsed_stems", help="Subfolder name for sliced stems")
     p_slice.set_defaults(func=cmd_slice)
 
+    # regenerate
+    p_regen = subparsers.add_parser("regenerate", help="Regenerate all multitrack audio files and launch.sh from sources.csv")
+    p_regen.add_argument("song", nargs="?", default=None, help="Song ID slug (e.g. 'higher-ground', 'superstition')")
+    p_regen.add_argument("--all", action="store_true", help="Regenerate all songs in sources.csv")
+    p_regen.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
+    p_regen.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
+    p_regen.add_argument("--force", "-f", action="store_true", help="Force re-download/re-processing of existing files")
+    p_regen.add_argument("--dry-run", action="store_true", help="Simulate download and alignment without executing commands")
+    p_regen.add_argument("--csv", default=None, help="Path to custom sources.csv file")
+    p_regen.set_defaults(func=cmd_regenerate)
+
+    # align
+    p_align = subparsers.add_parser("align", help="Extract clip offsets from an Audacity .aup4 project and save to sources.csv")
+    p_align.add_argument("song", help="Song ID slug (e.g. 'higher-ground')")
+    p_align.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
+    p_align.add_argument("--save", "-s", action="store_true", help="Save extracted offsets into sources.csv")
+    p_align.add_argument("--csv", default=None, help="Path to custom sources.csv file")
+    p_align.set_defaults(func=cmd_align)
+
     # audacity
-    p_aud = subparsers.add_parser("audacity", help="Generate an Audacity multitrack session file (.lof)")
+    p_aud = subparsers.add_parser("audacity", help="Generate an Audacity multitrack launch script (launch.sh)")
     p_aud.add_argument("song", help="Song ID slug")
-    p_aud.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio format expected in LOF (default: wav)")
+    p_aud.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio format (default: wav)")
     p_aud.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_aud.add_argument("--launch", action="store_true", help="Launch Audacity immediately with the generated session")
     p_aud.add_argument("--original", action="store_true", help="Launch Audacity loading the full original track for AI separation")

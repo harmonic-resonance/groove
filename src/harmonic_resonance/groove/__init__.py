@@ -10,14 +10,16 @@ from .catalog import (
     get_song,
     list_songs,
     load_sources_from_csv,
+    save_sources_to_csv,
 )
 from .downloader import (
     download_song_stems,
     download_stem,
 )
 from .audacity import (
-    generate_audacity_lof,
     generate_launch_script,
+    extract_offsets_from_aup4,
+    calculate_relative_offsets,
     launch_audacity,
 )
 from .study import (
@@ -34,10 +36,12 @@ __all__ = [
     "get_song",
     "list_songs",
     "load_sources_from_csv",
+    "save_sources_to_csv",
     "download_song_stems",
     "download_stem",
-    "generate_audacity_lof",
     "generate_launch_script",
+    "extract_offsets_from_aup4",
+    "calculate_relative_offsets",
     "launch_audacity",
     "get_groove_study",
     "__version__",

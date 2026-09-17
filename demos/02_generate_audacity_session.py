@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-02_generate_audacity_session.py - Generate Audacity multitrack LOF sessions programmatically.
+02_generate_audacity_session.py - Generate Audacity 4 multitrack launch scripts programmatically.
 """
 
 import sys
@@ -10,11 +10,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from harmonic_resonance.groove.catalog import get_song
-from harmonic_resonance.groove.audacity import generate_audacity_lof
+from harmonic_resonance.groove.audacity import generate_launch_script
 
 
 def main():
-    print("=== AUDACITY MULTITRACK SESSION GENERATOR DEMO ===\n")
+    print("=== AUDACITY 4 MULTITRACK LAUNCH SCRIPT GENERATOR DEMO ===\n")
     
     songs_to_generate = ["superstition", "higher-ground", "sir-duke"]
     
@@ -23,16 +23,16 @@ def main():
         if not song:
             continue
             
-        print(f"Generating Audacity LOF session for '{song.title}'...")
-        lof_path = generate_audacity_lof(song, audio_format="wav")
-        print(f"  -> File created: {lof_path}")
-        print("  -> Session Content Preview:")
-        content = lof_path.read_text().splitlines()
-        for line in content[:16]:
+        print(f"Generating Audacity 4 launch script for '{song.title}'...")
+        script_path = generate_launch_script(song)
+        print(f"  -> File created: {script_path}")
+        print("  -> Script Preview:")
+        content = script_path.read_text().splitlines()
+        for line in content[:14]:
             print(f"     {line}")
         print("     ...\n")
 
-    print("Done! You can open any generated .lof file directly in Audacity.")
+    print("Done! You can run ./launch.sh in any song directory to open all tracks in order in Audacity 4.")
 
 
 if __name__ == "__main__":

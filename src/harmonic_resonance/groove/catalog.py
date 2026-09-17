@@ -3,6 +3,7 @@ catalog.py - Curated database of groove masterpieces and isolated stems.
 """
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, List, Optional
 
 
@@ -474,4 +475,27 @@ def load_sources_from_csv(csv_path: Optional[str] = None) -> List[Dict[str, str]
         for row in reader:
             records.append(dict(row))
     return records
+
+
+def save_sources_to_csv(records: List[Dict[str, str]], csv_path: Optional[str] = None) -> Path:
+    """Save records back to sources.csv preserving column structure."""
+    import csv
+    from pathlib import Path
+
+    if csv_path:
+        p = Path(csv_path)
+    else:
+        p = Path(__file__).resolve().parent.parent.parent.parent / "sources.csv"
+        if not p.exists():
+            p = Path("sources.csv")
+
+    if not records:
+        return p
+
+    fieldnames = list(records[0].keys())
+    with open(p, mode="w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(records)
+    return p
 

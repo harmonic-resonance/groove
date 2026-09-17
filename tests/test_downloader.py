@@ -11,6 +11,7 @@ from harmonic_resonance.groove.downloader import (
     build_yt_dlp_command,
     get_stem_filename,
     download_song_stems,
+    regenerate_song_from_sources,
 )
 
 
@@ -47,6 +48,20 @@ class TestDownloader(unittest.TestCase):
             self.assertEqual(len(paths), expected_count)
             self.assertEqual(paths[0].name, "00_full_song.wav")
             self.assertEqual(paths[1].name, "01_drums.wav")
+        finally:
+            temp_dir.cleanup()
+
+    def test_regenerate_song_from_sources_dry_run(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        base_dir = Path(temp_dir.name)
+        try:
+            paths = regenerate_song_from_sources("higher-ground", base_dir=base_dir, dry_run=True)
+            self.assertEqual(len(paths), 5)
+            self.assertEqual(paths[0].name, "00_full_song.wav")
+            self.assertEqual(paths[1].name, "01_drums_tambourine.wav")
+            self.assertEqual(paths[2].name, "02_moog_bass.wav")
+            self.assertEqual(paths[3].name, "03_clavinets.wav")
+            self.assertEqual(paths[4].name, "04_vocals.wav")
         finally:
             temp_dir.cleanup()
 

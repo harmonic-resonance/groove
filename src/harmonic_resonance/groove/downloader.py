@@ -261,3 +261,144 @@ def slice_audio_file(
         created.append(out_path)
 
     return created
+
+
+def apply_audio_offset(
+    audio_path: Path,
+    lead_in_trim: float = 0.0,
+    pad_delay: float = 0.0,
+    logger: Optional[Callable[[str], None]] = None,
+) -> Path:
+    """
+    Apply lead-in trimming and/or delay padding to an audio file so it aligns
+    at time 0.0 with the master reference track.
+    """
+    if lead_in_trim <= 0.0 and pad_delay <= 0.0:
+        return audio_path
+
+    temp_path = audio_path.with_name(f"temp_aligned_{audio_path.name}")
+    cmd = ["ffmpeg", "-y"]
+
+    if lead_in_trim > 0.0:
+        if logger:
+            logger(f"  [cyan]Trimming lead-in:[/cyan] {lead_in_trim:.4f}s from {audio_path.name}")
+        cmd.extend(["-ss", f"{lead_in_trim:.6f}", "-i", str(audio_path)])
+    else:
+        cmd.extend(["-i", str(audio_path)])
+
+    if pad_delay > 0.0:
+        delay_ms = int(round(pad_delay * 1000))
+        if logger:
+            logger(f"  [cyan]Padding delay:[/cyan] {pad_delay:.4f}s ({delay_ms}ms) to {audio_path.name}")
+        cmd.extend(["-af", f"adelay={delay_ms}|{delay_ms}"])
+
+    cmd.append(str(temp_path))
+
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        shutil.move(str(temp_path), str(audio_path))
+    except Exception as err:
+        if temp_path.exists():
+            temp_path.unlink()
+        raise RuntimeError(f"Failed to align audio file {audio_path.name}: {err}")
+
+    return audio_path
+
+
+def regenerate_song_from_sources(
+    song_id: str,
+    base_dir: Optional[Path] = None,
+    audio_format: str = "wav",
+    dry_run: bool = False,
+    force: bool = False,
+    logger: Optional[Callable[[str], None]] = None,
+) -> List[Path]:
+    """
+    Regenerate all tracks for a song directly from sources.csv:
+    1. Downloads reference track (00_full_song.wav) and isolated stems.
+    2. Applies lead_in_trim and pad_delay offsets so all tracks are time-aligned.
+    3. Generates the Audacity 4 launch script (launch.sh).
+    """
+    from .catalog import load_sources_from_csv, get_song
+    from .audacity import generate_launch_script
+
+    records = load_sources_from_csv()
+    song_records = [r for r in records if r.get("song_id", "").lower() == song_id.lower()]
+    if not song_records:
+        raise ValueError(f"No sources recorded in sources.csv for '{song_id}'.")
+
+    song = get_song(song_id)
+    if song:
+        song_dir = get_song_directory(song, base_dir)
+        title = song.title
+    else:
+        title = song_records[0].get("title", song_id)
+        artist_slug = song_records[0].get("artist", "unknown").lower().replace(" ", "-")
+        song_dir = (base_dir or Path("tracks")) / artist_slug / song_id
+        song_dir.mkdir(parents=True, exist_ok=True)
+
+    if logger:
+        logger(f"[bold green]Regenerating multitrack session for '{title}'[/bold green]")
+        logger(f"Target directory: {song_dir}")
+
+    generated_paths: List[Path] = []
+    song_records = sorted(song_records, key=lambda r: int(r.get("track_number", 0)))
+
+    for r in song_records:
+        trk_num = int(r.get("track_number", 0))
+        stem_name = r.get("stem_name", f"track_{trk_num}")
+        display_name = r.get("display_name", stem_name)
+        url = r.get("url", "")
+        lead_in_trim = float(r.get("lead_in_trim", 0.0) or 0.0)
+        pad_delay = float(r.get("pad_delay", 0.0) or 0.0)
+
+        filename = f"{trk_num:02d}_{stem_name}.{audio_format}"
+        target_path = song_dir / filename
+
+        if target_path.exists() and not force:
+            if logger:
+                logger(f"[dim]Track {trk_num} exists: {filename} (skipping)[/dim]")
+            generated_paths.append(target_path)
+            continue
+
+        if not url:
+            if logger:
+                logger(f"[yellow]Skipping track {trk_num}: No URL specified[/yellow]")
+            continue
+
+        if logger:
+            logger(f"[cyan]Processing Track {trk_num}: {display_name}...[/cyan]")
+
+        output_template = str(target_path.with_suffix("")) + ".%(ext)s"
+        cmd = build_yt_dlp_command(url, output_template, audio_format)
+
+        if dry_run:
+            if logger:
+                logger(f"[yellow][DRY RUN][/yellow] Would download: {url} -> {filename}")
+                if lead_in_trim > 0 or pad_delay > 0:
+                    logger(f"  [yellow][DRY RUN][/yellow] Would apply offset: trim={lead_in_trim}s, pad={pad_delay}s")
+            generated_paths.append(target_path)
+            continue
+
+        # Execute yt-dlp download
+        try:
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        except Exception as err:
+            if logger:
+                logger(f"[bold red]Download failed for {display_name}:[/bold red] {err}")
+            continue
+
+        # Apply offset if specified
+        if target_path.exists() and (lead_in_trim > 0 or pad_delay > 0):
+            apply_audio_offset(target_path, lead_in_trim=lead_in_trim, pad_delay=pad_delay, logger=logger)
+
+        generated_paths.append(target_path)
+
+    # Generate launch.sh
+    if song:
+        launch_script = generate_launch_script(song, base_dir=base_dir)
+        if logger:
+            logger(f"[bold green]Created launcher:[/bold green] {launch_script}")
+
+    return generated_paths
+
