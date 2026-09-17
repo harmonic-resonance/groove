@@ -9,6 +9,7 @@ from .catalog import (
     CATALOG,
     get_song,
     list_songs,
+    load_sources_from_csv,
 )
 from .downloader import (
     download_song_stems,
@@ -31,6 +32,7 @@ __all__ = [
     "CATALOG",
     "get_song",
     "list_songs",
+    "load_sources_from_csv",
     "download_song_stems",
     "download_stem",
     "generate_audacity_lof",

@@ -37,6 +37,16 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(args.song, "superstition")
         self.assertTrue(args.launch)
 
+    def test_parser_sources(self):
+        args = self.parser.parse_args(["sources"])
+        self.assertEqual(args.command, "sources")
+        self.assertIsNone(args.song)
+
+    def test_parser_sources_with_song(self):
+        args = self.parser.parse_args(["sources", "sir-duke"])
+        self.assertEqual(args.command, "sources")
+        self.assertEqual(args.song, "sir-duke")
+
 
 if __name__ == "__main__":
     unittest.main()

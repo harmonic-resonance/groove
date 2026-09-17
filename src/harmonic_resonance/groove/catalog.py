@@ -450,3 +450,28 @@ def get_song(song_id: str) -> Optional[Song]:
 def list_songs() -> List[Song]:
     """Return all songs in the catalog."""
     return list(CATALOG.values())
+
+
+def load_sources_from_csv(csv_path: Optional[str] = None) -> List[Dict[str, str]]:
+    """Load source URLs and track definitions from sources.csv."""
+    import csv
+    from pathlib import Path
+
+    if csv_path:
+        p = Path(csv_path)
+    else:
+        # Default to sources.csv in project root
+        p = Path(__file__).resolve().parent.parent.parent.parent / "sources.csv"
+        if not p.exists():
+            p = Path("sources.csv")
+
+    if not p.exists():
+        return []
+
+    records = []
+    with open(p, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            records.append(dict(row))
+    return records
+

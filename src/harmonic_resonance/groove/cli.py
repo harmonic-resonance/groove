@@ -17,7 +17,7 @@ except ImportError:
     console = None
 
 
-from .catalog import CATALOG, get_song, list_songs
+from .catalog import CATALOG, get_song, list_songs, load_sources_from_csv
 from .downloader import download_song_stems, get_song_directory, slice_audio_file
 from .audacity import generate_audacity_lof, launch_audacity
 from .study import get_groove_study, GROOVE_FOUNDATIONS
@@ -271,12 +271,67 @@ def cmd_audacity(args):
             print_msg(f"[bold red]Failed to launch Audacity:[/bold red] {e}")
 
 
+def cmd_sources(args):
+    """List or inspect track source URLs from sources.csv."""
+    sources = load_sources_from_csv(getattr(args, "csv", None))
+    if not sources:
+        print_msg("[bold red]No sources found in sources.csv[/bold red]")
+        return
+
+    filter_song = args.song.lower() if getattr(args, "song", None) else None
+    if filter_song:
+        sources = [
+            s for s in sources
+            if filter_song in s.get("song_id", "").lower() or filter_song in s.get("title", "").lower()
+        ]
+        if not sources:
+            print_msg(f"[bold yellow]No sources found matching '{args.song}'.[/bold yellow]")
+            return
+
+    if console:
+        table = Table(title="[bold magenta]Groove Audio Sources (YouTube Stems & References)[/bold magenta]")
+        table.add_column("Song ID", style="cyan", no_wrap=True)
+        table.add_column("#", justify="right", style="yellow")
+        table.add_column("Stem Name", style="bold green")
+        table.add_column("Display Name", style="white")
+        table.add_column("Dur", justify="center", style="dim")
+        table.add_column("Type", style="magenta")
+        table.add_column("URL", style="blue")
+
+        for s in sources:
+            table.add_row(
+                s.get("song_id", ""),
+                s.get("track_number", ""),
+                s.get("stem_name", ""),
+                s.get("display_name", ""),
+                s.get("duration", ""),
+                s.get("source_type", ""),
+                s.get("url", ""),
+            )
+        console.print(table)
+    else:
+        print("\n==========================================================================================")
+        print(" GROOVE AUDIO SOURCES (sources.csv)")
+        print("==========================================================================================")
+        print(f" {'SONG':<15} | {'#':<2} | {'STEM':<18} | {'DUR':<5} | {'TYPE':<14} | {'URL'}")
+        print("------------------------------------------------------------------------------------------")
+        for s in sources:
+            print(f" {s.get('song_id',''):<15} | {s.get('track_number',''):<2} | {s.get('stem_name',''):<18} | {s.get('duration',''):<5} | {s.get('source_type',''):<14} | {s.get('url','')}")
+        print("==========================================================================================\n")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="groove",
         description="Groove - Study of rhythm mechanics and isolated multitrack stem manager for rehearsal and analysis.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # sources
+    p_sources = subparsers.add_parser("sources", help="View or search source URLs recorded in sources.csv")
+    p_sources.add_argument("song", nargs="?", default=None, help="Optional song ID to filter sources")
+    p_sources.add_argument("--csv", default=None, help="Path to custom sources.csv file")
+    p_sources.set_defaults(func=cmd_sources)
 
     # list
     p_list = subparsers.add_parser("list", help="List all groove studies in the catalog")

@@ -3,7 +3,7 @@ test_catalog.py - Unit tests for the groove catalog.
 """
 
 import unittest
-from harmonic_resonance.groove.catalog import CATALOG, get_song, list_songs
+from harmonic_resonance.groove.catalog import CATALOG, get_song, list_songs, load_sources_from_csv
 
 
 class TestCatalog(unittest.TestCase):
@@ -17,6 +17,22 @@ class TestCatalog(unittest.TestCase):
         self.assertIn("i-wish", song_ids)
         self.assertIn("living-for-the-city", song_ids)
         self.assertIn("isnt-she-lovely", song_ids)
+
+    def test_load_sources_from_csv(self):
+        sources = load_sources_from_csv()
+        self.assertGreater(len(sources), 0)
+        song_ids = {s["song_id"] for s in sources}
+        self.assertIn("higher-ground", song_ids)
+        self.assertIn("superstition", song_ids)
+        self.assertIn("sir-duke", song_ids)
+        self.assertIn("i-wish", song_ids)
+
+        for s in sources:
+            self.assertIn("song_id", s)
+            self.assertIn("track_number", s)
+            self.assertIn("stem_name", s)
+            self.assertIn("url", s)
+            self.assertTrue(s["url"].startswith("https://"))
 
     def test_get_song_case_insensitivity(self):
         song1 = get_song("superstition")
