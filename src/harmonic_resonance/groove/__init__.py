@@ -17,6 +17,7 @@ from .downloader import (
 )
 from .audacity import (
     generate_audacity_lof,
+    generate_launch_script,
     launch_audacity,
 )
 from .study import (
@@ -36,6 +37,7 @@ __all__ = [
     "download_song_stems",
     "download_stem",
     "generate_audacity_lof",
+    "generate_launch_script",
     "launch_audacity",
     "get_groove_study",
     "__version__",

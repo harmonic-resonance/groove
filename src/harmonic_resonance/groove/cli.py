@@ -19,7 +19,7 @@ except ImportError:
 
 from .catalog import CATALOG, get_song, list_songs, load_sources_from_csv
 from .downloader import download_song_stems, get_song_directory, slice_audio_file
-from .audacity import generate_audacity_lof, launch_audacity
+from .audacity import generate_audacity_lof, generate_launch_script, launch_audacity
 from .study import get_groove_study, GROOVE_FOUNDATIONS
 
 
@@ -229,8 +229,10 @@ def cmd_audacity(args):
     aup4_files = list(song_dir.glob("*.aup4")) + list(song_dir.glob("*.aup4.aup4"))
 
     lof_path = generate_audacity_lof(song, base_dir=base_dir, audio_format=audio_format)
-    print_msg(f"[bold green]Generated Audacity multitrack session script:[/bold green]")
-    print_msg(f"  [cyan]{lof_path.resolve()}[/cyan]")
+    launch_script = generate_launch_script(song, base_dir=base_dir)
+    print_msg(f"[bold green]Generated Audacity multitrack session files:[/bold green]")
+    print_msg(f"  Launch Script: [cyan]{launch_script.resolve()}[/cyan]")
+    print_msg(f"  LOF Script:    [dim]{lof_path.resolve()}[/dim]")
     if aup4_files:
         print_msg(f"[dim]Existing .aup4 project found: {aup4_files[0].resolve()}[/dim]")
 
