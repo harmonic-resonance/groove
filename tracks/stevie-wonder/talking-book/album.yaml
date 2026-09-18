@@ -3,24 +3,97 @@ artist: Stevie Wonder
 year: 1972
 label: Tamla / Motown
 studios:
-  - Electric Lady Studios (New York)
-  - Crystal Sound (Hollywood)
-  - Record Plant (Los Angeles)
+- Electric Lady Studios (New York)
+- Crystal Sound (Hollywood)
+- Record Plant (Los Angeles)
 producers:
-  - Stevie Wonder
-  - Malcolm Cecil (Associate)
-  - Robert Margouleff (Associate)
+- Stevie Wonder
+- Malcolm Cecil (Associate)
+- Robert Margouleff (Associate)
 key_gear:
-  - TONTO (The Original New Timbral Orchestra) Modular Synthesizer
-  - Hohner Clavinet D6
-  - Mu-Tron III Envelope Filter
-  - Fender Rhodes Mark I
-  - Moog Bass
+- TONTO (The Original New Timbral Orchestra) Modular Synthesizer
+- Hohner Clavinet D6
+- Mu-Tron III Envelope Filter
+- Fender Rhodes Mark I
+- Moog Bass
 personnel:
   Stevie Wonder: Lead & backing vocals, drums, Clavinet, TONTO synthesis, Fender Rhodes
   Jeff Beck: Guitar (Lookin' for Another Pure Love)
   Ray Parker Jr.: Guitar
   David Sanborn: Saxophone
-description: >
-  Stevie Wonder's 15th studio album and the breakthrough that established his complete artistic independence.
-  Features 'Superstition' and 'You Are the Sunshine of My Life'.
+description: 'Stevie Wonder''s 15th studio album and the breakthrough that established
+  his complete artistic independence. Features ''Superstition'' and ''You Are the
+  Sunshine of My Life''.
+
+  '
+tracks:
+- track_number: 1
+  title: You Are The Sunshine Of My Life
+  slug: you-are-the-sunshine-of-my-life
+  duration: 180
+  duration_formatted: '3:00'
+  url: https://www.youtube.com/watch?v=b1U6HReJeqo
+  video_id: b1U6HReJeqo
+- track_number: 2
+  title: Maybe Your Baby
+  slug: maybe-your-baby
+  duration: 411
+  duration_formatted: '6:51'
+  url: https://www.youtube.com/watch?v=PrwRMS1oJPA
+  video_id: PrwRMS1oJPA
+- track_number: 3
+  title: You And I
+  slug: you-and-i
+  duration: 278
+  duration_formatted: '4:38'
+  url: https://www.youtube.com/watch?v=KRrrFNVUXDQ
+  video_id: KRrrFNVUXDQ
+- track_number: 4
+  title: Tuesday Heartbreak
+  slug: tuesday-heartbreak
+  duration: 182
+  duration_formatted: '3:02'
+  url: https://www.youtube.com/watch?v=2UkgWQ4yx5Y
+  video_id: 2UkgWQ4yx5Y
+- track_number: 5
+  title: You've Got It Bad Girl (Album Version)
+  slug: youve-got-it-bad-girl-album-version
+  duration: 297
+  duration_formatted: '4:57'
+  url: https://www.youtube.com/watch?v=YVVh_JFLx_Q
+  video_id: YVVh_JFLx_Q
+- track_number: 6
+  title: Superstition
+  slug: superstition
+  duration: 268
+  duration_formatted: '4:28'
+  url: https://www.youtube.com/watch?v=egqv1mtos6A
+  video_id: egqv1mtos6A
+- track_number: 7
+  title: Big Brother
+  slug: big-brother
+  duration: 214
+  duration_formatted: '3:34'
+  url: https://www.youtube.com/watch?v=FaVOCdFRqHQ
+  video_id: FaVOCdFRqHQ
+- track_number: 8
+  title: Blame It On The Sun
+  slug: blame-it-on-the-sun
+  duration: 206
+  duration_formatted: '3:26'
+  url: https://www.youtube.com/watch?v=kd3xI0RIDXo
+  video_id: kd3xI0RIDXo
+- track_number: 9
+  title: Lookin' For Another Pure Love (Album Version)
+  slug: lookin-for-another-pure-love-album-version
+  duration: 284
+  duration_formatted: '4:44'
+  url: https://www.youtube.com/watch?v=htz5iCDCsLo
+  video_id: htz5iCDCsLo
+- track_number: 10
+  title: I Believe (When I Fall In Love It Will Be Forever)
+  slug: i-believe-when-i-fall-in-love-it-will-be-forever
+  duration: 293
+  duration_formatted: '4:53'
+  url: https://www.youtube.com/watch?v=cqP9a0N_p8A
+  video_id: cqP9a0N_p8A

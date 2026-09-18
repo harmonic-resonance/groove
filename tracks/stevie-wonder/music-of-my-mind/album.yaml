@@ -1,0 +1,67 @@
+title: Music Of My Mind
+artist: Stevie Wonder
+year: 1972
+tracks:
+- track_number: 1
+  title: Love Having You Around
+  slug: love-having-you-around
+  duration: 444
+  duration_formatted: '7:24'
+  url: https://www.youtube.com/watch?v=w3yaodgDV60
+  video_id: w3yaodgDV60
+- track_number: 2
+  title: Superwoman (Where Were You When I Needed You)
+  slug: superwoman-where-were-you-when-i-needed-you
+  duration: 488
+  duration_formatted: '8:08'
+  url: https://www.youtube.com/watch?v=oYpcCMxQXaE
+  video_id: oYpcCMxQXaE
+- track_number: 3
+  title: I Love Every Little Thing About You
+  slug: i-love-every-little-thing-about-you
+  duration: 236
+  duration_formatted: '3:56'
+  url: https://www.youtube.com/watch?v=olrLXo-gy7U
+  video_id: olrLXo-gy7U
+- track_number: 4
+  title: Sweet Little Girl
+  slug: sweet-little-girl
+  duration: 299
+  duration_formatted: '4:59'
+  url: https://www.youtube.com/watch?v=W_Oa-q7eAc8
+  video_id: W_Oa-q7eAc8
+- track_number: 5
+  title: Happier Than The Morning Sun
+  slug: happier-than-the-morning-sun
+  duration: 318
+  duration_formatted: '5:18'
+  url: https://www.youtube.com/watch?v=S4PcSOLtf-U
+  video_id: S4PcSOLtf-U
+- track_number: 6
+  title: Girl Blue
+  slug: girl-blue
+  duration: 216
+  duration_formatted: '3:36'
+  url: https://www.youtube.com/watch?v=znHEnhYd4L8
+  video_id: znHEnhYd4L8
+- track_number: 7
+  title: Seems So Long
+  slug: seems-so-long
+  duration: 262
+  duration_formatted: '4:22'
+  url: https://www.youtube.com/watch?v=udwP-95lEUk
+  video_id: udwP-95lEUk
+- track_number: 8
+  title: Keep On Running
+  slug: keep-on-running
+  duration: 400
+  duration_formatted: '6:40'
+  url: https://www.youtube.com/watch?v=0qy2Foji-3A
+  video_id: 0qy2Foji-3A
+- track_number: 9
+  title: Evil
+  slug: evil
+  duration: 214
+  duration_formatted: '3:34'
+  url: https://www.youtube.com/watch?v=MNt3-rX6pbo
+  video_id: MNt3-rX6pbo

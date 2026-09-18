@@ -68,6 +68,17 @@ class Album:
 
 
 ALBUMS: Dict[str, Album] = {
+    "music-of-my-mind": Album(
+        id="music-of-my-mind",
+        title="Music of My Mind",
+        artist="Stevie Wonder",
+        year=1972,
+        label="Tamla / Motown",
+        studios=["Media Sound (New York)"],
+        producers=["Stevie Wonder", "Malcolm Cecil (Associate)", "Robert Margouleff (Associate)"],
+        key_gear=["TONTO Modular Synthesizer", "Moog Synthesizer", "ARP Synthesizer", "Hohner Clavinet", "Fender Rhodes"],
+        description="The breakthrough album launching Stevie Wonder's classic era, featuring groundbreaking one-man synthesizer orchestration with TONTO.",
+    ),
     "talking-book": Album(
         id="talking-book",
         title="Talking Book",
@@ -134,6 +145,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=100.0,
         key="E♭ minor",
         time_signature="4/4",
+        track_number=6,
         full_song_url="https://www.youtube.com/watch?v=egqv1mtos6A",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=kYJqD9t9W98",

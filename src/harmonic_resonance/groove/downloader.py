@@ -42,10 +42,15 @@ def build_yt_dlp_command(
     if not (source_or_query.startswith("http://") or source_or_query.startswith("https://")):
         target = f"ytsearch1:{source_or_query}"
 
+    node_bin = shutil.which("node")
+    js_args = ["--js-runtimes", f"node:{node_bin}"] if node_bin else []
+
     if audio_format.lower() == "webm":
         cmd = [
             "yt-dlp",
+            *js_args,
             "--no-playlist",
+            "--retries", "5",
             "-f", "251/ba[ext=webm]/ba",
             "-o", output_template,
             target,
@@ -53,7 +58,9 @@ def build_yt_dlp_command(
     else:
         cmd = [
             "yt-dlp",
+            *js_args,
             "--no-playlist",
+            "--retries", "5",
             "--extract-audio",
             "--audio-format", audio_format,
             "--audio-quality", "0",  # Best quality

@@ -182,10 +182,22 @@ def download_full_song_reference(
     if logger:
         logger(f"    [green]Downloading full song reference:[/green] {target_file.name}")
 
-    try:
-        subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to download audio for {url}: {e.stderr or e}")
+    import time
+    last_err = None
+    for attempt in range(1, 4):
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            last_err = None
+            break
+        except subprocess.CalledProcessError as e:
+            last_err = e
+            if attempt < 3:
+                if logger:
+                    logger(f"    [yellow]Download attempt {attempt} failed, retrying in 2s...[/yellow]")
+                time.sleep(2)
+
+    if last_err:
+        raise RuntimeError(f"Failed to download audio for {url}: {last_err.stderr or last_err}")
 
     # Resolve output path in case extension was normalized
     if not target_file.exists():
