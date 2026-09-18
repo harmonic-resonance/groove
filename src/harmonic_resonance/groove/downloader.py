@@ -21,8 +21,8 @@ def get_song_directory(song: Song, base_dir: Optional[Path] = None) -> Path:
     return song_dir
 
 
-def get_stem_filename(index: int, stem: Stem, audio_format: str = "wav") -> str:
-    """Generate a clean, aligned filename for a stem (e.g. 01_drums.wav)."""
+def get_stem_filename(index: int, stem: Stem, audio_format: str = "webm") -> str:
+    """Generate a clean, aligned filename for a stem (e.g. 01_drums.webm)."""
     clean_name = stem.name.lower().replace(" ", "_").replace("-", "_")
     return f"{index:02d}_{clean_name}.{audio_format}"
 
@@ -30,25 +30,36 @@ def get_stem_filename(index: int, stem: Stem, audio_format: str = "wav") -> str:
 def build_yt_dlp_command(
     source_or_query: str,
     output_template: str,
-    audio_format: str = "wav",
+    audio_format: str = "webm",
 ) -> List[str]:
     """
-    Construct the command line arguments for yt-dlp to download and convert audio.
+    Construct the command line arguments for yt-dlp to download audio.
+    For 'webm', downloads native YouTube WebM Opus stream directly without re-encoding.
+    For other formats (e.g. 'wav', 'flac', 'mp3'), converts with ffmpeg.
     """
     # If not a direct URL, treat as a YouTube search query
     target = source_or_query
     if not (source_or_query.startswith("http://") or source_or_query.startswith("https://")):
         target = f"ytsearch1:{source_or_query}"
 
-    cmd = [
-        "yt-dlp",
-        "--no-playlist",
-        "--extract-audio",
-        "--audio-format", audio_format,
-        "--audio-quality", "0",  # Best quality
-        "-o", output_template,
-        target,
-    ]
+    if audio_format.lower() == "webm":
+        cmd = [
+            "yt-dlp",
+            "--no-playlist",
+            "-f", "251/ba[ext=webm]/ba",
+            "-o", output_template,
+            target,
+        ]
+    else:
+        cmd = [
+            "yt-dlp",
+            "--no-playlist",
+            "--extract-audio",
+            "--audio-format", audio_format,
+            "--audio-quality", "0",  # Best quality
+            "-o", output_template,
+            target,
+        ]
     return cmd
 
 
@@ -57,7 +68,7 @@ def download_stem(
     stem: Stem,
     song: Song,
     output_dir: Path,
-    audio_format: str = "wav",
+    audio_format: str = "webm",
     dry_run: bool = False,
     logger: Optional[Callable[[str], None]] = None,
 ) -> Path:
@@ -130,7 +141,7 @@ def trim_stem_audio(audio_path: Path, start_time: str, end_time: Optional[str] =
 def download_song_stems(
     song: Song,
     base_dir: Optional[Path] = None,
-    audio_format: str = "wav",
+    audio_format: str = "webm",
     dry_run: bool = False,
     logger: Optional[Callable[[str], None]] = None,
 ) -> List[Path]:
@@ -249,12 +260,20 @@ def slice_audio_file(
             display = s.get("display_name", out_name)
             logger(f"[cyan]Slicing '{display}' ({start} for {dur}s) -> {out_name}[/cyan]")
 
+        ext = out_path.suffix.lower()
+        if ext in (".webm", ".opus"):
+            codec_args = ["-c:a", "libopus", "-b:a", "160k"]
+        elif ext == ".wav":
+            codec_args = ["-c:a", "pcm_s16le"]
+        else:
+            codec_args = ["-c", "copy"]
+
         cmd = [
             "ffmpeg", "-y",
             "-ss", start,
             "-i", str(audio_path),
             "-t", dur,
-            "-c", "copy",
+            *codec_args,
             str(out_path),
         ]
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -292,6 +311,12 @@ def apply_audio_offset(
             logger(f"  [cyan]Padding delay:[/cyan] {pad_delay:.4f}s ({delay_ms}ms) to {audio_path.name}")
         cmd.extend(["-af", f"adelay={delay_ms}|{delay_ms}"])
 
+    ext = audio_path.suffix.lower()
+    if ext in (".webm", ".opus"):
+        cmd.extend(["-c:a", "libopus", "-b:a", "160k"])
+    elif ext == ".wav":
+        cmd.extend(["-c:a", "pcm_s16le"])
+
     cmd.append(str(temp_path))
 
     try:
@@ -308,7 +333,7 @@ def apply_audio_offset(
 def regenerate_song_from_sources(
     song_id: str,
     base_dir: Optional[Path] = None,
-    audio_format: str = "wav",
+    audio_format: str = "webm",
     dry_run: bool = False,
     force: bool = False,
     logger: Optional[Callable[[str], None]] = None,

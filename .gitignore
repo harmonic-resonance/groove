@@ -23,6 +23,7 @@ ENV/
 *.ogg
 *.m4a
 *.opus
+*.webm
 raw_unpadded/
 temp_pad_*
 

@@ -117,7 +117,22 @@ def pad_track_audio(
     if logger:
         logger(f"  [cyan]Padding {in_p.name}:[/cyan] start +{start_offset:.4f}s -> target length {total_duration:.3f}s")
 
-    cmd = ["ffmpeg", "-y", "-i", str(in_p), "-af", filter_str, "-c:a", "pcm_s16le", str(temp_path)]
+    # Select codec based on output file extension
+    ext = out_p.suffix.lower()
+    if ext in (".webm", ".opus"):
+        codec_args = ["-c:a", "libopus", "-b:a", "160k"]
+    elif ext == ".wav":
+        codec_args = ["-c:a", "pcm_s16le"]
+    elif ext == ".mp3":
+        codec_args = ["-c:a", "libmp3lame", "-b:a", "192k"]
+    elif ext == ".flac":
+        codec_args = ["-c:a", "flac"]
+    elif ext == ".m4a":
+        codec_args = ["-c:a", "aac", "-b:a", "192k"]
+    else:
+        codec_args = []
+
+    cmd = ["ffmpeg", "-y", "-i", str(in_p), "-af", filter_str, *codec_args, str(temp_path)]
     try:
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         shutil.move(str(temp_path), str(out_p))
@@ -141,16 +156,23 @@ def pad_song_tracks(
     """
     song_dir = Path(song_dir)
     track_info = {}
+    ext_priority = {".webm": 1, ".opus": 2, ".flac": 3, ".wav": 4, ".mp3": 5, ".m4a": 6}
     for track_name, offset in start_offsets.items():
         candidates = list(song_dir.glob(f"{track_name}.*"))
-        # Exclude temporary or raw files
-        valid = [c for c in candidates if not c.name.startswith("temp_") and not c.name.startswith(".")]
+        # Exclude temporary or raw files and pick highest priority format
+        valid = [
+            c for c in candidates
+            if not c.name.startswith("temp_")
+            and not c.name.startswith(".")
+            and c.suffix.lower() in ext_priority
+        ]
         if valid:
-            wav_file = valid[0]
-            raw_dur = get_audio_duration(wav_file)
+            valid.sort(key=lambda f: ext_priority.get(f.suffix.lower(), 99))
+            audio_file = valid[0]
+            raw_dur = get_audio_duration(audio_file)
             end_time = offset + raw_dur
             track_info[track_name] = {
-                "file": wav_file,
+                "file": audio_file,
                 "offset": offset,
                 "raw_dur": raw_dur,
                 "end_time": end_time,
@@ -287,17 +309,17 @@ def find_audacity_binary() -> str:
     if env_bin and Path(env_bin).exists():
         return env_bin
 
-    # 2. Known AppImage paths in user home
-    home = Path.home()
-    appimage_dir = home / "AppImages"
-    if appimage_dir.exists():
-        # Check for Audacity 4.0.0 specifically
-        audacity_4 = appimage_dir / "audacity-linux-4.0.0-x86_64.AppImage"
-        if audacity_4.exists():
-            return str(audacity_4)
-        # Any other audacity AppImage
-        for appimg in sorted(appimage_dir.glob("*audacity*.AppImage"), reverse=True):
-            return str(appimg)
+    # 2. Known AppImage paths in user home or system
+    appimage_dirs = [Path.home() / "AppImages", Path("/home/phi/AppImages")]
+    for appimage_dir in appimage_dirs:
+        if appimage_dir.exists():
+            # Check for Audacity 4.0.0 specifically
+            audacity_4 = appimage_dir / "audacity-linux-4.0.0-x86_64.AppImage"
+            if audacity_4.exists():
+                return str(audacity_4)
+            # Any other audacity AppImage
+            for appimg in sorted(appimage_dir.glob("*audacity*.AppImage"), reverse=True):
+                return str(appimg)
 
     # 3. System PATH fallback
     system_audacity = shutil.which("audacity")
@@ -378,13 +400,44 @@ def open_song_in_audacity(
     if force_project and not aup4_files:
         raise FileNotFoundError(f"No .aup4 project found in {song_dir}")
 
-    # Look for tracks in numeric order
-    tracks = sorted([f for f in song_dir.glob("0[0-9]_*.wav") if not f.name.startswith("temp_")])
-    if not tracks:
-        tracks = sorted([f for f in song_dir.glob("*.wav") if not f.name.startswith("temp_")])
+    # Look for tracks in numeric order across supported audio formats
+    AUDIO_EXTS = (".webm", ".opus", ".wav", ".flac", ".mp3", ".m4a")
+    ext_priority = {".webm": 1, ".opus": 2, ".flac": 3, ".wav": 4, ".mp3": 5, ".m4a": 6}
 
-    if not tracks:
+    # First look for files matching 0[0-9]_*
+    numbered_files = [
+        f for f in song_dir.iterdir()
+        if f.is_file()
+        and re.match(r"^0[0-9]_", f.name)
+        and f.suffix.lower() in AUDIO_EXTS
+        and not f.name.startswith("temp_")
+    ]
+
+    if not numbered_files:
+        numbered_files = [
+            f for f in song_dir.iterdir()
+            if f.is_file()
+            and f.suffix.lower() in AUDIO_EXTS
+            and not f.name.startswith("temp_")
+        ]
+
+    if not numbered_files:
         raise FileNotFoundError(f"No audio tracks found in {song_dir} to open in Audacity.")
+
+    # Deduplicate by track identifier (e.g. '00', '01' or stem), preferring webm > opus > flac > wav
+    tracks_by_key = {}
+    for f in numbered_files:
+        m = re.match(r"^(\d+)_", f.name)
+        key = m.group(1) if m else f.stem
+        if key not in tracks_by_key:
+            tracks_by_key[key] = f
+        else:
+            curr_pri = ext_priority.get(tracks_by_key[key].suffix.lower(), 99)
+            new_pri = ext_priority.get(f.suffix.lower(), 99)
+            if new_pri < curr_pri:
+                tracks_by_key[key] = f
+
+    tracks = [tracks_by_key[k] for k in sorted(tracks_by_key.keys(), key=lambda k: int(k) if k.isdigit() else str(k))]
 
     if logger:
         logger(f"[bold cyan]Opening {len(tracks)} track(s) in numeric order in Audacity:[/bold cyan]")

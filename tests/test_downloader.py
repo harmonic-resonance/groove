@@ -16,7 +16,15 @@ from harmonic_resonance.groove.downloader import (
 
 
 class TestDownloader(unittest.TestCase):
-    def test_build_yt_dlp_command_with_url(self):
+    def test_build_yt_dlp_command_webm_default(self):
+        url = "https://www.youtube.com/watch?v=12345"
+        cmd = build_yt_dlp_command(url, "out.%(ext)s")
+        self.assertIn("yt-dlp", cmd)
+        self.assertIn("-f", cmd)
+        self.assertIn("251/ba[ext=webm]/ba", cmd)
+        self.assertIn(url, cmd)
+
+    def test_build_yt_dlp_command_with_wav(self):
         url = "https://www.youtube.com/watch?v=12345"
         cmd = build_yt_dlp_command(url, "out.%(ext)s", audio_format="wav")
         self.assertIn("yt-dlp", cmd)
@@ -33,8 +41,11 @@ class TestDownloader(unittest.TestCase):
 
     def test_get_stem_filename(self):
         stem = Stem(name="moog-bass", display_name="Moog Bass", description="Bass")
-        filename = get_stem_filename(2, stem, "wav")
-        self.assertEqual(filename, "02_moog_bass.wav")
+        filename_default = get_stem_filename(2, stem)
+        self.assertEqual(filename_default, "02_moog_bass.webm")
+
+        filename_wav = get_stem_filename(2, stem, "wav")
+        self.assertEqual(filename_wav, "02_moog_bass.wav")
 
     def test_download_song_stems_dry_run(self):
         temp_dir = tempfile.TemporaryDirectory()
@@ -43,11 +54,11 @@ class TestDownloader(unittest.TestCase):
             song = get_song("superstition")
             self.assertIsNotNone(song)
 
-            paths = download_song_stems(song, base_dir=base_dir, audio_format="wav", dry_run=True)
+            paths = download_song_stems(song, base_dir=base_dir, dry_run=True)
             expected_count = len(song.stems) + (1 if song.full_song_url else 0)
             self.assertEqual(len(paths), expected_count)
-            self.assertEqual(paths[0].name, "00_full_song.wav")
-            self.assertEqual(paths[1].name, "01_drums.wav")
+            self.assertEqual(paths[0].name, "00_full_song.webm")
+            self.assertEqual(paths[1].name, "01_drums.webm")
         finally:
             temp_dir.cleanup()
 
@@ -57,11 +68,11 @@ class TestDownloader(unittest.TestCase):
         try:
             paths = regenerate_song_from_sources("higher-ground", base_dir=base_dir, dry_run=True)
             self.assertEqual(len(paths), 5)
-            self.assertEqual(paths[0].name, "00_full_song.wav")
-            self.assertEqual(paths[1].name, "01_drums_tambourine.wav")
-            self.assertEqual(paths[2].name, "02_moog_bass.wav")
-            self.assertEqual(paths[3].name, "03_clavinets.wav")
-            self.assertEqual(paths[4].name, "04_vocals.wav")
+            self.assertEqual(paths[0].name, "00_full_song.webm")
+            self.assertEqual(paths[1].name, "01_drums_tambourine.webm")
+            self.assertEqual(paths[2].name, "02_moog_bass.webm")
+            self.assertEqual(paths[3].name, "03_clavinets.webm")
+            self.assertEqual(paths[4].name, "04_vocals.webm")
         finally:
             temp_dir.cleanup()
 

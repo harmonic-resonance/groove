@@ -136,6 +136,38 @@ class TestAudacity(unittest.TestCase):
         self.assertTrue((raw_dir / "00_full_song.wav").exists())
         self.assertTrue((raw_dir / "01_drums.wav").exists())
 
+    def test_pad_track_audio_webm(self):
+        import wave
+        import struct
+        import subprocess
+
+        # First make a small 1.0s WAV then convert to WebM
+        wav_path = self.base_dir / "sample.wav"
+        framerate = 44100
+        nframes = 44100
+        with wave.open(str(wav_path), "wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(framerate)
+            w.writeframes(struct.pack(f"<{nframes * 2}h", *([0] * (nframes * 2))))
+
+        webm_path = self.base_dir / "sample.webm"
+        subprocess.run(
+            ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libopus", str(webm_path)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+        )
+        self.assertTrue(webm_path.exists())
+
+        # Pad webm with 0.5s start offset and total duration 2.0s
+        padded_webm = pad_track_audio(
+            input_file=webm_path,
+            output_file=self.base_dir / "padded.webm",
+            start_offset=0.5,
+            total_duration=2.0,
+        )
+        self.assertTrue(padded_webm.exists())
+        self.assertAlmostEqual(get_audio_duration(padded_webm), 2.0, places=1)
+
 
 if __name__ == "__main__":
     unittest.main()

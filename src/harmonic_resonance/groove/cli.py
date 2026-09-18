@@ -708,7 +708,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_regen = subparsers.add_parser("regenerate", help="Regenerate all multitrack audio files from tracks.csv")
     p_regen.add_argument("song", nargs="?", default=None, help="Song ID slug (defaults to current directory)")
     p_regen.add_argument("--all", action="store_true", help="Regenerate all songs")
-    p_regen.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
+    p_regen.add_argument("--format", default="webm", choices=["webm", "opus", "wav", "flac", "mp3"], help="Audio output format (default: webm)")
     p_regen.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_regen.add_argument("--force", "-f", action="store_true", help="Force re-download of existing files")
     p_regen.add_argument("--dry-run", action="store_true", help="Simulate download and alignment without executing commands")
@@ -717,7 +717,7 @@ def build_parser() -> argparse.ArgumentParser:
     # download
     p_dl = subparsers.add_parser("download", help="Download isolated audio stems for a catalog song")
     p_dl.add_argument("song", nargs="?", default=None, help="Song ID slug")
-    p_dl.add_argument("--format", default="wav", choices=["wav", "flac", "mp3"], help="Audio output format (default: wav)")
+    p_dl.add_argument("--format", default="webm", choices=["webm", "opus", "wav", "flac", "mp3"], help="Audio output format (default: webm)")
     p_dl.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_dl.add_argument("--dry-run", action="store_true", help="Simulate download without invoking yt-dlp")
     p_dl.set_defaults(func=cmd_download)
