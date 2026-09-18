@@ -9,9 +9,9 @@ from typing import Optional
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Grid, Vertical
+from textual.containers import Container, Grid, Vertical
 from textual.screen import Screen
-from textual.widgets import DataTable, Footer, Header
+from textual.widgets import DataTable, Footer, Header, Static
 from textual.widgets._data_table import ColumnKey
 
 from ...audacity import (
@@ -21,13 +21,20 @@ from ...audacity import (
 )
 from ...catalog import load_song_tracks, save_song_tracks
 from ...context import GrooveContext, Scope, parse_duration_seconds
+from ...player import (
+    AudioPlayerManager,
+    SpectrumMode,
+    MODE_LABELS,
+    extract_waveform_envelope,
+    render_waveform_ascii,
+)
 from ..sort_modal import SortModal
 from ..viewers import ContentModal
 from .catalog_screen import _format_time
 
 
 class SongScreen(Screen):
-    """Level 3: Song rehearsal cockpit with stem multitrack table and direct action hotkeys."""
+    """Level 3: Song rehearsal cockpit with stem multitrack table, audio playback, and real-time spectrum."""
 
     CSS = """
     Screen > Vertical {
@@ -43,13 +50,23 @@ class SongScreen(Screen):
     }
     .summary-table {
         height: auto;
-        border: none;
-    }
-    .summary-table:focus {
-        border: none;
     }
     DataTable {
         height: 1fr;
+    }
+    #player-container {
+        height: 5;
+        background: $surface-darken-1;
+        border: solid $accent-darken-2;
+        padding: 0 1;
+        margin: 0 1 1 1;
+    }
+    #player-status {
+        height: 1;
+        text-style: bold;
+    }
+    #player-waveform {
+        height: 2;
     }
     Vertical {
         height: 100%;
@@ -58,8 +75,12 @@ class SongScreen(Screen):
 
     BINDINGS = [
         Binding("h", "go_back", "Back to Album", show=True),
-        Binding("j", "move_down", "Cursor down", show=True),
-        Binding("k", "move_up", "Cursor up", show=True),
+        Binding("j", "move_down", "Cursor down", show=False),
+        Binding("k", "move_up", "Cursor up", show=False),
+        Binding("enter", "play_selected", "Play Stem", show=True),
+        Binding("space", "toggle_play", "Play/Pause", show=True),
+        Binding("x", "stop_play", "Stop Audio", show=True),
+        Binding("v", "cycle_visualizer", "Visualizer Mode", show=True),
         Binding("o", "open_audacity", "Open Audacity", show=True),
         Binding("a", "align_offsets", "Extract Align", show=True),
         Binding("p", "pad_stems", "Pad Stems", show=True),
@@ -98,6 +119,11 @@ class SongScreen(Screen):
         self.current_sort_key: Optional[ColumnKey] = None
         self.current_sort_reverse: bool = False
 
+        self.player_mgr = AudioPlayerManager.get_instance()
+        self.current_waveform_peaks: list[float] = []
+        self.current_playing_file: Optional[Path] = None
+        self.current_playing_name: Optional[str] = None
+
     def compose(self) -> ComposeResult:
         self.table = DataTable(id="stems-table")
         self.table.add_columns(
@@ -119,6 +145,9 @@ class SongScreen(Screen):
                 yield DataTable(id="pocket-table", show_header=False, cursor_type=None, classes="summary-table")
                 yield DataTable(id="rehearsal-table", show_header=False, cursor_type=None, classes="summary-table")
             yield self.table
+            with Container(id="player-container"):
+                yield Static(id="player-status")
+                yield Static(id="player-waveform")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -143,6 +172,8 @@ class SongScreen(Screen):
 
         self.load_stems()
         self.update_summary()
+        self.update_player_ui()
+        self.set_interval(0.1, self.update_player_ui)
         self.table.focus()
 
     def load_stems(self) -> None:
@@ -164,10 +195,7 @@ class SongScreen(Screen):
             dur_str = _format_time(dur_val)
 
             # Check if matching local audio file exists on disk
-            has_file = any(
-                f.is_file() and f.stem.startswith(num)
-                for f in self.song_dir.iterdir()
-            )
+            has_file = self._find_stem_audio_file(num, stem_name) is not None
             file_badge = Text("✓", style="bold green", justify="center") if has_file else Text("missing", style="dim red", justify="center")
 
             src_url = t.get("source_url", "") or "-"
@@ -210,7 +238,130 @@ class SongScreen(Screen):
         files_cnt = s_sum.get("files_present", 0)
         reh_table.add_row(Text("local audio files:", justify="right"), Text(f"{files_cnt} files", justify="right", style="bold green" if files_cnt > 0 else "red"))
 
+    def on_unmount(self) -> None:
+        self.player_mgr.stop()
+
+    def _find_stem_audio_file(self, track_num: str, stem_name: str) -> Optional[Path]:
+        """Find matching audio file on disk for a given track number or stem name."""
+        if not self.song_dir or not self.song_dir.exists():
+            return None
+        num = str(track_num).zfill(2)
+        candidate_dirs = [self.song_dir, self.song_dir / "raw_unpadded"]
+        for d in candidate_dirs:
+            if not d.is_dir():
+                continue
+            for ext in [".webm", ".wav", ".flac", ".mp3", ".opus", ".m4a"]:
+                for f in d.iterdir():
+                    if f.is_file() and f.suffix.lower() == ext:
+                        if f.stem.startswith(num) or stem_name in f.stem:
+                            return f
+        return None
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        """Play stem track when Enter or clicked on row."""
+        self.action_play_selected()
+
+    def action_play_selected(self) -> None:
+        """Play the stem track under cursor with real-time spectrum visualization."""
+        if not self.tracks or self.table.cursor_row is None:
+            return
+        row_idx = self.table.cursor_row
+        if row_idx < 0 or row_idx >= len(self.tracks):
+            return
+
+        t = self.tracks[row_idx]
+        num = str(t.get("track_number", "00")).zfill(2)
+        stem_name = t.get("stem_name", "")
+        disp_name = t.get("display_name", stem_name)
+
+        audio_file = self._find_stem_audio_file(num, stem_name)
+        if not audio_file:
+            self.notify(f"No local audio file found for {disp_name}. Run 'groove download' first.", severity="warning")
+            return
+
+        s_sum = self.ctx.get_song_summary(self.song_slug, artist_slug=self.artist_slug, album_slug=self.album_slug)
+        song_key = s_sum.get("key", "")
+
+        try:
+            self.current_playing_file = audio_file
+            self.current_playing_name = disp_name
+            self.current_waveform_peaks = extract_waveform_envelope(audio_file, num_bars=70)
+            self.player_mgr.play(
+                audio_path=audio_file,
+                stem_name=disp_name,
+                title=f"Groove: {self.song_slug} - {disp_name}",
+                musical_key=song_key,
+            )
+            mode_lbl = MODE_LABELS.get(self.player_mgr.current_mode, "Musical CQT Notes")
+            key_info = f" [Key: {song_key}]" if song_key else ""
+            self.notify(f"Playing: {disp_name}  [{mode_lbl}]{key_info}", severity="information")
+            self.update_player_ui()
+        except Exception as e:
+            self.notify(f"Playback error: {e}", severity="error")
+
+    def action_toggle_play(self) -> None:
+        """Toggle pause/resume or play current track."""
+        if self.player_mgr.is_playing():
+            if self.player_mgr.active_player:
+                self.player_mgr.active_player.toggle_pause()
+            self.update_player_ui()
+        else:
+            self.action_play_selected()
+
+    def action_stop_play(self) -> None:
+        """Stop audio playback."""
+        if self.player_mgr.is_playing():
+            self.player_mgr.stop()
+            self.notify("Audio stopped")
+            self.update_player_ui()
+
+    def action_cycle_visualizer(self) -> None:
+        """Cycle spectrum visualization mode (CQT -> Waveform -> Freqs -> Waves -> Spectrogram)."""
+        new_mode = self.player_mgr.cycle_mode()
+        lbl = MODE_LABELS.get(new_mode, new_mode)
+        self.notify(f"Visualizer: {lbl}")
+        self.update_player_ui()
+
+    def update_player_ui(self) -> None:
+        """Update the player status bar and full-track waveform with active playhead."""
+        try:
+            status_widget = self.query_one("#player-status", Static)
+            wave_widget = self.query_one("#player-waveform", Static)
+        except Exception:
+            return
+
+        status = self.player_mgr.get_status()
+        if status["playing"]:
+            cur_pos = status["position"]
+            dur = status["duration"]
+            ratio = status["progress_ratio"]
+            pct = int(ratio * 100)
+            paused = status["paused"]
+            icon = "⏸ PAUSED" if paused else "▶ PLAYING"
+            style = "bold yellow" if paused else "bold green"
+            mode_lbl = status["mode_label"]
+            m_key = status.get("musical_key")
+            key_str = f"  • [yellow]Key: {m_key}[/yellow]" if m_key else ""
+
+            pos_str = f"{_format_time(cur_pos)} / {_format_time(dur)}"
+            status_text = (
+                f"[{style}]{icon}[/{style}] [bold white]{self.current_playing_name or status['stem_name']}[/bold white]  "
+                f"[bold cyan]{pos_str}[/bold cyan] ({pct}%)  "
+                f"[dim]• Mode: {mode_lbl}{key_str}  • [bold]Space[/bold]: Pause  [bold]v[/bold]: Mode  [bold]x[/bold]: Stop[/dim]"
+            )
+            status_widget.update(status_text)
+
+            if self.current_waveform_peaks:
+                wave_line, scrub_line = render_waveform_ascii(self.current_waveform_peaks, progress_ratio=ratio, width=70)
+                wave_widget.update(f"{wave_line}\n{scrub_line}")
+            else:
+                wave_widget.update("[dim]Rendering waveform...[/dim]")
+        else:
+            status_widget.update("[dim]⏹ STOPPED  •  [bold]Enter / Space[/bold]: Play Stem  |  [bold]v[/bold]: Visualizer Mode  |  [bold]x[/bold]: Stop[/dim]")
+            wave_widget.update("[dim white]──────────────────────────────────────────────────────────────────────[/dim white]")
+
     def action_go_back(self) -> None:
+        self.player_mgr.stop()
         self.app.pop_screen()
 
     def action_move_up(self) -> None:
@@ -223,6 +374,7 @@ class SongScreen(Screen):
 
     def action_open_audacity(self) -> None:
         """Launch Audacity 4 with this song study."""
+        self.player_mgr.stop()
         if not self.song_dir:
             self.notify("Song directory not found", severity="error")
             return
@@ -295,6 +447,7 @@ class SongScreen(Screen):
         self.app.push_screen(ContentModal(f"Groove Study: {self.song_slug}", content, is_markdown=True))
 
     def action_prev_song(self) -> None:
+        self.player_mgr.stop()
         if not self.sibling_songs or len(self.sibling_songs) <= 1:
             return
         idx = self.sibling_songs.index(self.song_slug) if self.song_slug in self.sibling_songs else 0
@@ -303,6 +456,7 @@ class SongScreen(Screen):
         self.app.push_screen(SongScreen(self.tracks_dir, self.artist_slug, self.album_slug, new_song))
 
     def action_next_song(self) -> None:
+        self.player_mgr.stop()
         if not self.sibling_songs or len(self.sibling_songs) <= 1:
             return
         idx = self.sibling_songs.index(self.song_slug) if self.song_slug in self.sibling_songs else 0

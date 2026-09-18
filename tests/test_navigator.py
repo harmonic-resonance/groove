@@ -130,3 +130,32 @@ async def test_navigator_modals():
         await pilot.press("escape")
         await pilot.pause()
         assert isinstance(app.screen, SongScreen)
+
+
+@pytest.mark.anyio
+async def test_navigator_song_screen_player():
+    repo_root = Path(__file__).resolve().parent.parent
+    song_dir = repo_root / "tracks" / "stevie-wonder" / "innervisions" / "higher-ground"
+    app = GrooveNavigator(start_dir=song_dir)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        assert isinstance(app.screen, SongScreen)
+        song_screen: SongScreen = app.screen
+
+        # Verify player widgets exist
+        status_w = song_screen.query_one("#player-status")
+        wave_w = song_screen.query_one("#player-waveform")
+        assert status_w is not None
+        assert wave_w is not None
+
+        # Test cycle visualizer mode with 'v'
+        initial_mode = song_screen.player_mgr.current_mode
+        await pilot.press("v")
+        await pilot.pause()
+        assert song_screen.player_mgr.current_mode != initial_mode
+
+        # Test stop with 'x'
+        await pilot.press("x")
+        await pilot.pause()
+        assert not song_screen.player_mgr.is_playing()
+

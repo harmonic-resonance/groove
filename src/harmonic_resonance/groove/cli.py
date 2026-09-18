@@ -395,6 +395,255 @@ def cmd_open(args):
         sys.exit(1)
 
 
+def resolve_playback_audio(target: Optional[str], song_arg: Optional[str], ctx: GrooveContext) -> Tuple[Path, str, str]:
+    """
+    Resolve target audio file, stem name, and title from CLI arguments and context.
+    Returns (audio_path, stem_name, display_title).
+    """
+    # 1. If target is an existing file path directly
+    if target:
+        p = Path(target)
+        if p.is_file():
+            audio_path = p.resolve()
+            return audio_path, audio_path.stem, f"Groove: {audio_path.name}"
+
+    # 2. Resolve song and song_dir
+    song = None
+    song_dir = None
+    track_query = target
+
+    if song_arg:
+        normalized = song_arg.lower().replace(" ", "-").replace("_", "-")
+        song = get_song(normalized)
+        song_dir = ctx.find_song_dir(normalized)
+        if not song_dir:
+            artist_slug = song.artist.lower().replace(" ", "-") if song else (ctx.artist or "unknown")
+            tracks_dir = ctx.tracks_dir or Path("tracks")
+            song_dir = tracks_dir / artist_slug / normalized
+    elif ctx.scope == Scope.SONG and ctx.song:
+        song = get_song(ctx.song)
+        song_dir = ctx.cwd
+    else:
+        # Check if target matches a known song
+        if target:
+            normalized = target.lower().replace(" ", "-").replace("_", "-")
+            possible_song = get_song(normalized)
+            possible_dir = ctx.find_song_dir(normalized)
+            if possible_song or (possible_dir and possible_dir.exists()):
+                song = possible_song
+                song_dir = possible_dir if (possible_dir and possible_dir.exists()) else (
+                    (ctx.tracks_dir or Path("tracks")) / (song.artist.lower().replace(" ", "-") if song else "unknown") / normalized
+                )
+                track_query = None  # target was the song; play full song / track 0
+            else:
+                print_msg(f"[bold red]Error:[/bold red] '{target}' does not match a known song, and no song context was detected.")
+                print_msg("Usage: groove play [track] [--song SONG] (or run within a song directory)")
+                sys.exit(1)
+        else:
+            print_msg("[bold red]Error:[/bold red] No song or track specified. Provide a song name or run from within a song directory.")
+            sys.exit(1)
+
+    if not song_dir.exists():
+        print_msg(f"[bold red]Error:[/bold red] Song directory not found: {song_dir}")
+        sys.exit(1)
+
+    # 3. Locate audio files in song_dir
+    audio_extensions = {".wav", ".webm", ".opus", ".mp3", ".flac", ".m4a", ".ogg"}
+    audio_files = [
+        f for f in sorted(song_dir.iterdir())
+        if f.is_file() and f.suffix.lower() in audio_extensions
+        and not f.name.startswith("temp_") and not f.name.startswith(".")
+    ]
+
+    if not audio_files:
+        print_msg(f"[bold red]Error:[/bold red] No audio files found in {song_dir}")
+        print_msg("Run 'groove download' or 'groove regenerate' to download audio stems.")
+        sys.exit(1)
+
+    # 4. Find matching audio file
+    if not track_query:
+        t0 = [f for f in audio_files if f.name.startswith("00_") or f.name.startswith("00.")]
+        matched = t0[0] if t0 else audio_files[0]
+    else:
+        q = track_query.strip().lower()
+        matched = None
+
+        if q.isdigit():
+            num = int(q)
+            for f in audio_files:
+                if f.name.startswith(f"{num:02d}_") or f.name.startswith(f"{num:02d}.") or f.name.startswith(f"{num}_"):
+                    matched = f
+                    break
+
+        if not matched:
+            for f in audio_files:
+                if q in f.name.lower():
+                    matched = f
+                    break
+
+        if not matched:
+            csv_path = song_dir / "tracks.csv"
+            if csv_path.exists():
+                tracks_data = load_tracks_from_csv(csv_path)
+                for t in tracks_data:
+                    t_num = str(t.get("track_number", "")).strip()
+                    s_name = str(t.get("stem_name", "")).strip().lower()
+                    d_name = str(t.get("display_name", "")).strip().lower()
+                    if q in (t_num, s_name) or q in d_name:
+                        for f in audio_files:
+                            if f.name.startswith(f"{t_num.zfill(2)}_") or s_name in f.name.lower():
+                                matched = f
+                                break
+                        if matched:
+                            break
+
+        if not matched:
+            print_msg(f"[bold red]Error:[/bold red] No audio file matching '{track_query}' found in {song_dir}")
+            print_msg("Available audio files in this directory:")
+            for f in audio_files:
+                print_msg(f"  • {f.name}")
+            sys.exit(1)
+
+    stem_name = matched.stem
+    song_title = song.title if song else song_dir.name
+    display_title = f"{song_title} — {stem_name}"
+    return matched, stem_name, display_title
+
+
+def cmd_play(args):
+    """Play a track or stem with live spectrum visualization and waveform tracking."""
+    import time
+    from .player import (
+        AudioPlayerManager,
+        SpectrumMode,
+        extract_waveform_envelope,
+        render_waveform_ascii,
+        is_mpv_available,
+    )
+
+    if not is_mpv_available():
+        print_msg("[bold red]Error:[/bold red] mpv player not found on system.")
+        print_msg("Please install mpv: sudo apt install mpv")
+        sys.exit(1)
+
+    ctx = detect_context()
+    target = getattr(args, "track", None)
+    song_arg = getattr(args, "song", None)
+    audio_path, stem_name, title = resolve_playback_audio(target, song_arg, ctx)
+
+    if getattr(args, "no_spectrum", False):
+        mode = SpectrumMode.NONE
+    else:
+        raw_mode = getattr(args, "mode", "cqt")
+        try:
+            mode = SpectrumMode(raw_mode.lower())
+        except ValueError:
+            mode = SpectrumMode.CQT
+
+    loop = getattr(args, "loop", False)
+
+    # Detect or extract musical key for CQT column highlighting
+    musical_key = getattr(args, "key", None)
+    if not musical_key:
+        song_slug = song_arg or (ctx.song if ctx else None)
+        if song_slug and ctx:
+            s_sum = ctx.get_song_summary(song_slug)
+            musical_key = s_sum.get("key", "")
+
+    envelope = extract_waveform_envelope(audio_path, num_bars=60)
+    manager = AudioPlayerManager.get_instance()
+    player = manager.play(
+        audio_path=audio_path,
+        stem_name=stem_name,
+        title=title,
+        mode=mode,
+        loop=loop,
+        musical_key=musical_key,
+    )
+
+    wave_str, scrub_str = render_waveform_ascii(envelope, progress_ratio=0.0, width=60)
+    key_hdr = f" [yellow](Key: {musical_key})[/yellow]" if musical_key else ""
+    print_msg(f"\n[bold cyan]Playing:[/bold cyan] [bold white]{title}[/bold white]{key_hdr}")
+    print_msg(f"[dim]File:[/dim] {audio_path}")
+    print_msg(f"[dim]Visualizer Mode:[/dim] [magenta]{player.mode.value.upper()}[/magenta] ([dim]Press 'v' to cycle[/dim])")
+    print_msg(f"[dim]Controls:[/dim] [yellow]Space[/yellow]=Pause/Resume  [yellow]v[/yellow]=Mode  [yellow]q[/yellow]=Quit  [yellow]←/→[/yellow]=Seek ±5s\n")
+    print_msg(wave_str)
+    print_msg(scrub_str)
+
+    if not sys.stdin.isatty():
+        try:
+            if player.process:
+                player.process.wait()
+        except KeyboardInterrupt:
+            manager.stop()
+        return
+
+    import select
+    import termios
+    import tty
+
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        last_wave_render = 0.0
+
+        while player.is_running():
+            now = time.time()
+            if now - last_wave_render >= 0.15:
+                status = manager.get_status()
+                pos = status["position"]
+                dur = status["duration"]
+                ratio = status["progress_ratio"]
+                paused_str = " [yellow](PAUSED)[/yellow]" if status["paused"] else ""
+                time_str = f"{int(pos//60):02d}:{int(pos%60):02d} / {int(dur//60):02d}:{int(dur%60):02d}"
+
+                w_line, s_line = render_waveform_ascii(envelope, progress_ratio=ratio, width=60)
+                if console:
+                    with console.capture() as cap1:
+                        console.print(f"{w_line}  {time_str}{paused_str}", end="")
+                    rendered_w = cap1.get()
+                    with console.capture() as cap2:
+                        console.print(f"{s_line}  [magenta][{status['mode'].value.upper()}][/magenta]", end="")
+                    rendered_s = cap2.get()
+                else:
+                    rendered_w = f"{w_line}  {time_str}{paused_str}"
+                    rendered_s = f"{s_line}  [{status['mode'].value.upper()}]"
+
+                sys.stdout.write(f"\033[2A\r\033[K{rendered_w}\n\033[K{rendered_s}\r")
+                sys.stdout.flush()
+                last_wave_render = now
+
+            r, _, _ = select.select([sys.stdin], [], [], 0.05)
+            if r:
+                ch = sys.stdin.read(1)
+                if ch == " ":
+                    player.toggle_pause()
+                elif ch in ("v", "V"):
+                    manager.cycle_mode()
+                elif ch in ("q", "Q", "\x03"):
+                    break
+                elif ch == "\x1b":
+                    r2, _, _ = select.select([sys.stdin], [], [], 0.02)
+                    if r2:
+                        seq = sys.stdin.read(2)
+                        if seq == "[D":
+                            player.seek(-5.0)
+                        elif seq == "[C":
+                            player.seek(5.0)
+                elif ch in ("h", "a"):
+                    player.seek(-5.0)
+                elif ch in ("l", "d"):
+                    player.seek(5.0)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        manager.stop()
+        print("\n\nPlayback stopped.\n")
+
+
 def cmd_align(args):
     """Inspect and extract track offsets from an Audacity .aup4 project and update tracks.csv."""
     ctx = detect_context()
@@ -788,6 +1037,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_tracks = subparsers.add_parser("tracks", aliases=["sources"], help="View track source URLs and alignment offsets")
     p_tracks.add_argument("song", nargs="?", default=None, help="Optional song ID to filter tracks")
     p_tracks.set_defaults(func=cmd_tracks)
+
+    # play
+    p_play = subparsers.add_parser("play", help="Play song or stem audio with real-time spectrum visualization")
+    p_play.add_argument("track", nargs="?", default=None, help="Track number, stem name, or audio file (defaults to 00_full_song)")
+    p_play.add_argument("--song", "-s", default=None, help="Song ID slug (defaults to current directory)")
+    p_play.add_argument("--mode", "-m", default="cqt", choices=["cqt", "waveform", "freqs", "waves", "spectrum", "none"], help="Spectrum visualizer mode (default: cqt)")
+    p_play.add_argument("--key", "-k", default=None, help="Musical key of track (e.g. 'Eb minor', 'B major') for CQT guide columns")
+    p_play.add_argument("--no-spectrum", action="store_true", help="Disable visualizer window (audio playback only)")
+    p_play.add_argument("--loop", action="store_true", help="Loop playback indefinitely")
+    p_play.set_defaults(func=cmd_play)
 
     # open / audacity
     p_open = subparsers.add_parser("open", aliases=["audacity"], help="Open song in Audacity 4 (.aup4 project if present, else audio tracks in order)")

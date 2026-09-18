@@ -66,6 +66,33 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(args.save)
         self.assertTrue(args.pad)
 
+    def test_parser_play_default(self):
+        args = self.parser.parse_args(["play"])
+        self.assertEqual(args.command, "play")
+        self.assertIsNone(args.track)
+        self.assertIsNone(args.song)
+        self.assertEqual(args.mode, "cqt")
+        self.assertFalse(args.no_spectrum)
+        self.assertFalse(args.loop)
+
+    def test_parser_play_with_track_and_options(self):
+        args = self.parser.parse_args([
+            "play", "03_clavinets",
+            "--song", "higher-ground",
+            "--mode", "waves",
+            "--loop",
+        ])
+        self.assertEqual(args.command, "play")
+        self.assertEqual(args.track, "03_clavinets")
+        self.assertEqual(args.song, "higher-ground")
+        self.assertEqual(args.mode, "waves")
+        self.assertTrue(args.loop)
+
+    def test_parser_play_no_spectrum(self):
+        args = self.parser.parse_args(["play", "--no-spectrum"])
+        self.assertEqual(args.command, "play")
+        self.assertTrue(args.no_spectrum)
+
 
 if __name__ == "__main__":
     unittest.main()
