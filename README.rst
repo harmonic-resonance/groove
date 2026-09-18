@@ -150,13 +150,13 @@ From the repository root:
    groove list
 
    # Create a new artist
-   groove new-artist "d-angelo" --name "D'Angelo"
+   groove new-artist "marvin-gaye" --name "Marvin Gaye"
 
    # Create a new song study
-   groove new-song "spanish-joint" --artist "d-angelo" --title "Spanish Joint" --bpm 108 --key "Dm"
+   groove new-song "whats-going-on" --artist "marvin-gaye" --title "What's Going On" --bpm 100 --key "E"
 
    # Register an isolated track URL into tracks.csv
-   groove add-track "drums" "Questlove Drums" "https://www.youtube.com/watch?v=..." --song spanish-joint --artist d-angelo
+   groove add-track "bass" "James Jamerson Bass" "https://www.youtube.com/watch?v=..." --song whats-going-on --artist marvin-gaye
 
    # Regenerate audio stems from scratch
    groove regenerate higher-ground --artist stevie-wonder
