@@ -70,6 +70,29 @@ class TestCatalog(unittest.TestCase):
         self.assertIn("clavinets", stem_names)
         self.assertIn("vocals", stem_names)
 
+    def test_list_albums(self):
+        from harmonic_resonance.groove.catalog import list_albums, get_album
+        albums = list_albums()
+        self.assertGreaterEqual(len(albums), 3)
+        album_ids = [a.id for a in albums]
+        self.assertIn("talking-book", album_ids)
+        self.assertIn("innervisions", album_ids)
+        self.assertIn("songs-in-the-key-of-life", album_ids)
+
+    def test_get_album_attributes(self):
+        from harmonic_resonance.groove.catalog import get_album
+        album = get_album("Innervisions")
+        self.assertIsNotNone(album)
+        self.assertEqual(album.artist, "Stevie Wonder")
+        self.assertEqual(album.year, 1973)
+        self.assertTrue(any("Malcolm Cecil" in p for p in album.producers))
+        self.assertTrue(any("Robert Margouleff" in p for p in album.producers))
+        self.assertTrue(any("Record Plant" in s for s in album.studios))
+        self.assertTrue(any("TONTO" in g for g in album.key_gear))
+
+        # Case insensitivity
+        self.assertEqual(get_album("innervisions"), get_album("INNERVISIONS"))
+
 
 if __name__ == "__main__":
     unittest.main()

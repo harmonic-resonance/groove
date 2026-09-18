@@ -12,10 +12,18 @@ Part of the `harmonic-resonance <https://github.com/harmonic-resonance>`_ platfo
 Features
 --------
 
-- **Context-Aware Scoping**: The CLI automatically detects where it is being run:
-  - **Song scope** (inside ``tracks/<artist>/<song>/``): commands like ``groove info``, ``groove study``, ``groove chords``, ``groove tracks``, ``groove open``, ``groove align``, and ``groove pad`` run directly on that song without requiring ``--artist`` or ``--song`` flags.
-  - **Artist scope** (inside ``tracks/<artist>/``): commands like ``groove list`` and ``groove new-song`` automatically scope to that artist.
-  - **Root scope** (repository root): operates across the complete catalog.
+- **Context-Aware Scoping**: The CLI automatically detects where it is being run across a 4-tier hierarchy:
+  - **Song scope** (inside ``tracks/<artist>/<album>/<song>/``): commands like ``groove info``, ``groove study``, ``groove chords``, ``groove tracks``, ``groove open``, ``groove align``, and ``groove pad`` run directly on that song without requiring ``--artist``, ``--album``, or ``--song`` flags.
+  - **Album scope** (inside ``tracks/<artist>/<album>/``): commands like ``groove list`` and ``groove new-song`` automatically scope to that album, with album studio and gear context.
+  - **Artist scope** (inside ``tracks/<artist>/``): commands like ``groove list`` and ``groove new-album`` automatically scope to that artist.
+  - **Root scope** (repository root or ``tracks/``): operates across the complete catalog.
+
+- **Interactive Textual TUI Navigator (``groove nav`` / ``groove``)**:
+  - Modeled directly on ``geometor/seer-navigator``: delivers clean terminal navigation across the four-tier hierarchy.
+  - 3-card summation metric header at each level (Catalog, Artist, Album, Song) displaying stems counts, total duration, projects present, chord charts, and studies.
+  - Vim keybindings (``j``/``k`` navigation, ``l``/``Enter`` drill-down, ``h`` pop-up, ``s`` sort table, ``r`` refresh).
+  - Quick modal viewers on song level: ``c`` (view chord sheet), ``u`` (view study markdown), ``o`` (launch Audacity), ``a`` (align offsets), ``p`` (pad stems), ``[`` / ``]`` (previous/next song in album).
+  - Context launch: running ``groove`` from inside any directory starts at that exact level while maintaining the full back-stack up to Catalog.
 
 - **Native Audacity 4 Integration (``groove open``)**:
   - Intelligently launches Audacity for rehearsal and study.
@@ -23,10 +31,13 @@ Features
   - If no project file exists, automatically loads all numbered audio tracks (``00_*.wav``, ``01_*.wav``, ...) into Audacity in order at timeline :math:`t=0`.
   - Completely replaces legacy shell launch scripts.
 
-- **Self-Contained Song Studies**: Every song in ``tracks/<artist>/<song>/`` contains:
+- **Self-Contained Song Studies**: Every song in ``tracks/<artist>/<album>/<song>/`` contains:
   - ``README.md``: In-depth musicological breakdown of tempo, key, meter, pocket feel, micro-timing, interlocking rhythms, and practice tips.
   - ``tracks.csv``: Streamlined stem registry containing track numbers, stem names, display names, source URLs, video IDs, durations, source types, and start offsets.
   - ``chords.csml``: Structured chord progression and lyrics in Chord Sheet Markup Language (CSML), compatible with `harmonic-resonance/chordulator <https://github.com/harmonic-resonance/chordulator>`_.
+
+- **Album Context & Studio Profiles**:
+  - Each album in ``tracks/<artist>/<album>/`` contains an ``album.yaml`` and ``README.md`` capturing recording studios, associate producers, recording dates, and signature gear (TONTO, Clavinet D6, Mu-Tron III, Moog Bass).
 
 - **Decoupled Alignment & Track Equalization**:
   - ``groove align``: Inspects the SQLite database inside an Audacity 4 ``.aup4`` project, computes microsecond-accurate clip start offsets, and syncs them to ``tracks.csv``.
@@ -37,7 +48,7 @@ Features
   - All stems can be downloaded or regenerated from scratch at any time via ``groove download`` or ``groove regenerate``.
 
 - **Interactive Scaffolding**:
-  - Quickly scaffold new artists (``groove new-artist``), song studies (``groove new-song``), or add stems (``groove add-track``).
+  - Quickly scaffold new artists (``groove new-artist``), albums (``groove new-album``), song studies (``groove new-song``), or add stems (``groove add-track``).
 
 Installation
 ------------
@@ -71,28 +82,52 @@ Ensure you have ``ffmpeg`` and ``audacity`` installed:
 Directory Structure
 -------------------
 
-The catalog is organized hierarchically by artist and song:
+The catalog is organized hierarchically by artist, album, and song:
 
 .. code-block:: text
 
    tracks/
    └── stevie-wonder/
-       ├── README.md                      # Artist overview & rhythm section philosophy
-       ├── higher-ground/
-       │   ├── README.md                  # Pocket breakdown, micro-timing, practice guide
-       │   ├── chords.csml                # CSML chord progression and lyrics
-       │   ├── tracks.csv                 # Stem registry, URLs, & alignment offsets
-       │   ├── 00_full_song.wav           # Equalized reference mix (generated locally)
-       │   ├── 01_drums_tambourine.wav    # Isolated drums & tambourine (generated locally)
-       │   ├── 02_moog_bass.wav           # Moog synth bass (generated locally)
-       │   ├── 03_clavinets.wav           # Dual clavinets (generated locally)
-       │   └── 04_vocals.wav              # Lead & backing vocals (generated locally)
-       ├── superstition/
-       ├── sir-duke/
-       └── i-wish/
+       ├── README.md                          # Artist overview & rhythm section philosophy
+       ├── talking-book/
+       │   ├── album.yaml                     # Studio, gear, and producer metadata
+       │   ├── README.md                      # Album overview & gear notes
+       │   └── superstition/
+       │       ├── README.md                  # Pocket breakdown, micro-timing, practice guide
+       │       ├── chords.csml                # CSML chord progression and lyrics
+       │       ├── tracks.csv                 # Stem registry, URLs, & alignment offsets
+       │       ├── 00_full_song.wav           # Equalized reference mix (generated locally)
+       │       ├── 01_drums.wav               # Isolated drums (generated locally)
+       │       ├── 02_moog_bass.wav           # Moog synth bass (generated locally)
+       │       ├── 03_clavinet1.wav           # Clavinet 1 (generated locally)
+       │       ├── 04_clavinet2.wav           # Clavinet 2 (generated locally)
+       │       ├── 05_horns.wav               # Horn section (generated locally)
+       │       └── 06_vocals.wav              # Lead vocals (generated locally)
+       ├── innervisions/
+       │   ├── album.yaml
+       │   ├── higher-ground/
+       │   └── living-for-the-city/
+       └── songs-in-the-key-of-life/
+           ├── album.yaml
+           ├── sir-duke/
+           ├── i-wish/
+           └── isnt-she-lovely/
 
 CLI Usage & Workflow
 ---------------------
+
+Interactive Navigator (TUI)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Launch the visual interactive terminal navigator:
+
+.. code-block:: bash
+
+   # Launch interactive TUI at current folder scope
+   groove nav
+
+   # Or simply 'groove' in an interactive terminal
+   groove
 
 Context-Aware Song Workflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -50,6 +50,77 @@ class Song:
     full_song_url: Optional[str] = None
 
 
+@dataclass
+class Album:
+    """Represents an album in the groove catalog."""
+    id: str
+    title: str
+    artist: str
+    year: int
+    label: str = "Tamla / Motown"
+    studios: List[str] = field(default_factory=list)
+    producers: List[str] = field(default_factory=list)
+    key_gear: List[str] = field(default_factory=list)
+    personnel: Dict[str, str] = field(default_factory=dict)
+    description: str = ""
+
+
+ALBUMS: Dict[str, Album] = {
+    "talking-book": Album(
+        id="talking-book",
+        title="Talking Book",
+        artist="Stevie Wonder",
+        year=1972,
+        label="Tamla / Motown",
+        studios=["Electric Lady Studios (NYC)", "Crystal Sound (Hollywood)", "Record Plant (Los Angeles)"],
+        producers=["Stevie Wonder", "Malcolm Cecil (Associate)", "Robert Margouleff (Associate)"],
+        key_gear=["TONTO Modular Synthesizer", "Hohner Clavinet D6", "Mu-Tron III Envelope Filter", "Fender Rhodes Mark I", "Moog Bass"],
+        description="A turning point in modern music. Stevie gained complete creative control, pioneering polyphonic electronic orchestration with TONTO alongside funk rhythm arrangements.",
+    ),
+    "innervisions": Album(
+        id="innervisions",
+        title="Innervisions",
+        artist="Stevie Wonder",
+        year=1973,
+        label="Tamla / Motown",
+        studios=["Record Plant (Los Angeles)", "Media Sound (New York)"],
+        producers=["Stevie Wonder", "Malcolm Cecil (Associate)", "Robert Margouleff (Associate)"],
+        key_gear=["TONTO Modular Synthesizer", "ARP 2600", "Moog Bass", "Hohner Clavinet D6", "Ludwig Drums"],
+        description="Peak of the TONTO era. Stevie played virtually all instruments on masterpieces like 'Higher Ground' and 'Living for the City', demonstrating total groove command.",
+    ),
+    "songs-in-the-key-of-life": Album(
+        id="songs-in-the-key-of-life",
+        title="Songs in the Key of Life",
+        artist="Stevie Wonder",
+        year=1976,
+        label="Tamla / Motown",
+        studios=["Crystal Sound (Hollywood)", "The Hit Factory (New York)", "Record Plant (Sausalito)"],
+        producers=["Stevie Wonder"],
+        key_gear=["Yamaha GX-1 Polyphonic Synthesizer", "Fender Rhodes", "Hohner Clavinet D6", "Moog Synthesizer"],
+        description="Double-album magnum opus. Expanded the rhythm section with elite musicians (Nathan Watts, Raymond Pounds) while integrating the revolutionary Yamaha GX-1 synthesizer.",
+    ),
+}
+
+
+def get_album(album_id: str) -> Optional[Album]:
+    """Retrieve an album by ID slug or title."""
+    norm = album_id.lower().replace(" ", "-").replace("_", "-")
+    if norm in ALBUMS:
+        return ALBUMS[norm]
+    for alb in ALBUMS.values():
+        if alb.title.lower() == album_id.lower():
+            return alb
+    return None
+
+
+def list_albums(artist: Optional[str] = None) -> List[Album]:
+    """List all registered albums, optionally filtered by artist."""
+    if artist:
+        art_norm = artist.lower().replace(" ", "-")
+        return [a for a in ALBUMS.values() if a.artist.lower().replace(" ", "-") == art_norm]
+    return list(ALBUMS.values())
+
+
 # Curated Registry of Stevie Wonder's Grooviest Masterpieces
 CATALOG: Dict[str, Song] = {
     "superstition": Song(
@@ -466,30 +537,54 @@ TRACK_FIELDS = [
 ]
 
 
-def get_song_tracks_csv_path(song_id: str, artist_id: Optional[str] = None) -> Optional[Path]:
+def get_song_tracks_csv_path(
+    song_id: str,
+    artist_id: Optional[str] = None,
+    album_id: Optional[str] = None,
+) -> Optional[Path]:
     """Find the per-song tracks.csv (or legacy sources.csv) path."""
     root_dir = Path(__file__).resolve().parent.parent.parent.parent
     tracks_dir = root_dir / "tracks"
     song = get_song(song_id)
 
-    # 1. If artist is known from catalog or argument
+    # 1. If artist and album are known from catalog or arguments
     artist_slug = artist_id or (song.artist.lower().replace(" ", "-") if song else None)
+    album_slug = album_id or (song.album.lower().replace(" ", "-") if (song and song.album) else None)
+    s_id = song.id if song else song_id.lower().replace(" ", "-")
+
+    if artist_slug and album_slug:
+        target_dir = tracks_dir / artist_slug / album_slug / s_id
+        for candidate_name in ["tracks.csv", "sources.csv"]:
+            p = target_dir / candidate_name
+            if p.exists():
+                return p
+
     if artist_slug:
-        s_id = song.id if song else song_id.lower().replace(" ", "-")
+        # Check any album under artist
+        for candidate_name in ["tracks.csv", "sources.csv"]:
+            matches = list(tracks_dir.glob(f"{artist_slug}/*/{s_id}/{candidate_name}"))
+            if matches:
+                return matches[0]
+
+        # Check direct artist/song (legacy 2-tier)
         target_dir = tracks_dir / artist_slug / s_id
         for candidate_name in ["tracks.csv", "sources.csv"]:
             p = target_dir / candidate_name
             if p.exists():
                 return p
-        # Default target path for new files
-        return target_dir / "tracks.csv"
 
-    # 2. Search across all artist subdirectories
+    # 2. Search across all artist and album subdirectories
     normalized_song = song_id.lower().replace(" ", "-")
     for candidate_name in ["tracks.csv", "sources.csv"]:
-        matches = list(tracks_dir.glob(f"*/{normalized_song}/{candidate_name}"))
+        matches = list(tracks_dir.glob(f"*/*/{normalized_song}/{candidate_name}")) + list(tracks_dir.glob(f"*/{normalized_song}/{candidate_name}"))
         if matches:
             return matches[0]
+
+    # Default fallback target path for new files
+    if artist_slug and album_slug:
+        return tracks_dir / artist_slug / album_slug / s_id / "tracks.csv"
+    elif artist_slug:
+        return tracks_dir / artist_slug / s_id / "tracks.csv"
 
     return None
 
@@ -589,7 +684,12 @@ def load_tracks_from_csv(
     tracks_dir = root_dir / "tracks"
     all_records = []
 
-    song_csv_files = sorted(list(tracks_dir.glob("*/*/tracks.csv")) + list(tracks_dir.glob("*/*/sources.csv")))
+    song_csv_files = sorted(
+        list(tracks_dir.glob("*/*/*/tracks.csv")) +
+        list(tracks_dir.glob("*/*/tracks.csv")) +
+        list(tracks_dir.glob("*/*/*/sources.csv")) +
+        list(tracks_dir.glob("*/*/sources.csv"))
+    )
     # Deduplicate if both exist
     seen_dirs = set()
     for scsv in song_csv_files:
@@ -597,14 +697,30 @@ def load_tracks_from_csv(
         if song_dir in seen_dirs:
             continue
         seen_dirs.add(song_dir)
-        art_name = song_dir.parent.name
-        song_name = song_dir.name
+        try:
+            rel_parts = song_dir.relative_to(tracks_dir).parts
+        except ValueError:
+            continue
+
+        if len(rel_parts) >= 3:
+            art_name = rel_parts[0]
+            album_name = rel_parts[1]
+            song_name = rel_parts[2]
+        elif len(rel_parts) == 2:
+            art_name = rel_parts[0]
+            album_name = None
+            song_name = rel_parts[1]
+        else:
+            continue
+
         with open(scsv, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 r = dict(row)
                 r.setdefault("song_id", song_name)
                 r.setdefault("artist", art_name)
+                if album_name:
+                    r.setdefault("album", album_name)
                 all_records.append(r)
 
     if all_records:

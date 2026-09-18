@@ -37,6 +37,10 @@ The vision of **groove** is to build a comprehensive platform for understanding,
 
 ## Phase 3: Interactive Rehearsal TUI & MIDI Integration
 
+- [x] **Textual TUI Navigator & Rehearsal Workspace (`groove nav`)**:
+  - Terminal-based hierarchical navigator across Catalog, Artist, Album, and Song levels.
+  - 3-card summation dashboard at every level (counts, durations, projects, chords, studies).
+  - In-app chord sheet and musicology viewers, Audacity launcher, and stem offset alignment.
 - [ ] **Textual TUI Stem Player**:
   - Terminal-based multitrack mixer allowing live soloing, muting, volume adjustment, and section looping directly in the console.
 - [ ] **Cross-Integration with `midiator` & `phi-midi`**:

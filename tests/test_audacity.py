@@ -63,7 +63,9 @@ class TestAudacity(unittest.TestCase):
         self.assertAlmostEqual(rel["01_drums_tambourine"]["lead_in_trim"], 0.0)
 
     def test_extract_offsets_from_existing_project(self):
-        project_file = Path("tracks/stevie-wonder/higher-ground/higher-ground.aup4")
+        project_file = Path("tracks/stevie-wonder/innervisions/higher-ground/higher-ground.aup4")
+        if not project_file.exists():
+            project_file = Path("tracks/stevie-wonder/higher-ground/higher-ground.aup4")
         if project_file.exists():
             offsets = extract_offsets_from_aup4(project_file)
             self.assertIn("00_full_song", offsets)

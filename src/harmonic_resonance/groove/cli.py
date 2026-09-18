@@ -44,6 +44,7 @@ from .audacity import (
 )
 from .scaffold import (
     create_artist_readme,
+    create_album_scaffold,
     create_song_scaffold,
     add_track_entry,
 )
@@ -85,6 +86,17 @@ def resolve_target_song(args, ctx: GrooveContext) -> Tuple[Optional[Song], Path]
     return song, song_dir
 
 
+def cmd_nav(args):
+    """Launch the interactive Groove Navigator TUI (Seer style)."""
+    try:
+        from .navigator import run_navigator
+        run_navigator()
+    except ImportError as e:
+        print_msg(f"[bold red]Error launching navigator:[/bold red] {e}")
+        print_msg("[yellow]Ensure textual is installed: uv run pip install -e .[/yellow]")
+        sys.exit(1)
+
+
 def cmd_list(args):
     """List available groove studies (sensitive to current context)."""
     ctx = detect_context()
@@ -93,71 +105,119 @@ def cmd_list(args):
         cmd_info(args)
         return
 
-    if ctx.scope == Scope.ARTIST and ctx.artist:
-        songs = ctx.list_songs(artist=ctx.artist)
+    if ctx.scope == Scope.ALBUM and ctx.album:
+        songs = ctx.list_songs(artist=ctx.artist, album=ctx.album)
+        alb_sum = ctx.get_album_summary(ctx.artist, ctx.album)
+        title = alb_sum.get("title", ctx.album.replace("-", " ").title())
+        year = f" ({alb_sum.get('year')})" if alb_sum.get("year") else ""
+        art_title = ctx.artist.replace("-", " ").title() if ctx.artist else ""
+
         if console:
-            table = Table(title=f"[bold magenta]Groove Studies: {ctx.artist.replace('-', ' ').title()}[/bold magenta]")
+            table = Table(title=f"[bold magenta]Album Study: {art_title} • {title}{year}[/bold magenta]")
             table.add_column("Song Slug", style="cyan")
             table.add_column("Title", style="bold white")
-            table.add_column("Tracks Count", justify="center", style="yellow")
-            table.add_column("Has CSML", justify="center", style="blue")
-            table.add_column("Has Project", justify="center", style="green")
-
-            for art, s_slug in songs:
-                s_dir = ctx.tracks_dir / art / s_slug
-                trks = load_song_tracks(s_dir)
-                has_csml = "✓" if (s_dir / "chords.csml").exists() else "-"
-                has_proj = "✓" if list(s_dir.glob("*.aup4")) else "-"
-                cat_song = get_song(s_slug)
-                title = cat_song.title if cat_song else s_slug.replace("-", " ").title()
-                table.add_row(s_slug, title, str(len(trks)), has_csml, has_proj)
-            console.print(table)
-        else:
-            print(f"\nGroove Studies for {ctx.artist}:")
-            for art, s_slug in songs:
-                s_dir = ctx.tracks_dir / art / s_slug
-                trks = load_song_tracks(s_dir)
-                print(f"  - {s_slug:<20} ({len(trks)} tracks)")
-        return
-
-    # Root scope: list artists and songs
-    all_songs = ctx.list_songs()
-    if all_songs:
-        if console:
-            table = Table(title="[bold magenta]Groove Catalog - Master Rhythm Studies[/bold magenta]")
-            table.add_column("Artist", style="green", no_wrap=True)
-            table.add_column("Song Slug", style="cyan")
-            table.add_column("Title", style="bold white")
-            table.add_column("Tracks", justify="center", style="yellow")
-            table.add_column("Chords", justify="center", style="blue")
-            table.add_column("Project", justify="center", style="magenta")
-
-            for art, s_slug in all_songs:
-                s_dir = ctx.tracks_dir / art / s_slug
-                trks = load_song_tracks(s_dir)
-                has_csml = "✓" if (s_dir / "chords.csml").exists() else "-"
-                has_proj = "✓" if list(s_dir.glob("*.aup4")) else "-"
-                cat_song = get_song(s_slug)
-                title = cat_song.title if cat_song else s_slug.replace("-", " ").title()
-                table.add_row(art.replace("-", " ").title(), s_slug, title, str(len(trks)), has_csml, has_proj)
-            console.print(table)
-        else:
-            print("\nGROOVE CATALOG:")
-            for art, s_slug in all_songs:
-                print(f"  {art}/{s_slug}")
-    else:
-        # Fallback to in-memory catalog
-        cat_songs = list_songs()
-        if console:
-            table = Table(title="[bold magenta]Groove Catalog (Catalog Definitions)[/bold magenta]")
-            table.add_column("ID", style="cyan", no_wrap=True)
-            table.add_column("Title", style="bold white")
-            table.add_column("Artist", style="green")
             table.add_column("Tempo", justify="right", style="yellow")
             table.add_column("Key", style="blue")
-            for song in cat_songs:
-                table.add_row(song.id, song.title, song.artist, f"{song.tempo_bpm:.0f} BPM", song.key)
+            table.add_column("Tracks", justify="center", style="green")
+            table.add_column("CSML", justify="center", style="blue")
+            table.add_column("Project", justify="center", style="magenta")
+
+            for art, alb, s_slug in songs:
+                s_sum = ctx.get_song_summary(s_slug, artist_slug=art, album_slug=alb)
+                has_csml = "✓" if s_sum.get("has_chords") else "-"
+                has_proj = "✓" if s_sum.get("has_project") else "-"
+                tempo_str = f"{s_sum.get('tempo', 0.0):.0f} BPM" if s_sum.get("tempo", 0.0) > 0 else "-"
+                table.add_row(
+                    s_slug,
+                    s_sum.get("title", s_slug),
+                    tempo_str,
+                    s_sum.get("key", "-") or "-",
+                    str(s_sum.get("stems_count", 0)),
+                    has_csml,
+                    has_proj,
+                )
             console.print(table)
+        else:
+            print(f"\nSongs on {title}{year}:")
+            for art, alb, s_slug in songs:
+                s_sum = ctx.get_song_summary(s_slug, artist_slug=art, album_slug=alb)
+                print(f"  - {s_slug:<20} ({s_sum.get('stems_count', 0)} tracks)")
+        return
+
+    if ctx.scope == Scope.ARTIST and ctx.artist:
+        albums = ctx.list_albums(artist=ctx.artist)
+        art_sum = ctx.get_artist_summary(ctx.artist)
+        art_title = ctx.artist.replace("-", " ").title()
+
+        if albums and console:
+            table = Table(title=f"[bold magenta]Discography & Albums: {art_title}[/bold magenta]")
+            table.add_column("Year", style="yellow")
+            table.add_column("Album Slug", style="cyan")
+            table.add_column("Title", style="bold white")
+            table.add_column("Songs", justify="right", style="green")
+            table.add_column("Stems", justify="right", style="cyan")
+            table.add_column("Tempo Spectrum", justify="center", style="yellow")
+            table.add_column("Projects", justify="center", style="magenta")
+
+            for art, alb in albums:
+                alb_sum = ctx.get_album_summary(art, alb)
+                year_str = str(alb_sum.get("year", "-") or "-")
+                title = alb_sum.get("title", alb.replace("-", " ").title())
+                t_min = alb_sum.get("tempo_min", 0.0)
+                t_max = alb_sum.get("tempo_max", 0.0)
+                tempo_str = f"{t_min:.0f}-{t_max:.0f} BPM" if t_min and t_max and t_min != t_max else (f"{t_min:.0f} BPM" if t_min else "-")
+                table.add_row(
+                    year_str,
+                    alb,
+                    title,
+                    str(alb_sum.get("songs_count", 0)),
+                    str(alb_sum.get("stems_count", 0)),
+                    tempo_str,
+                    str(alb_sum.get("projects_count", 0)),
+                )
+            console.print(table)
+            return
+
+    # Root scope: list artists
+    artists = ctx.list_artists()
+    if artists and console:
+        cat_sum = ctx.get_catalog_summary()
+        table = Table(title=f"[bold magenta]Groove Catalog - Master Rhythm Studies ({cat_sum.get('songs_count', 0)} songs across {cat_sum.get('albums_count', 0)} albums)[/bold magenta]")
+        table.add_column("Artist", style="green", no_wrap=True)
+        table.add_column("Albums", justify="right", style="yellow")
+        table.add_column("Songs", justify="right", style="cyan")
+        table.add_column("Stems", justify="right", style="white")
+        table.add_column("Tempo Range", justify="center", style="yellow")
+        table.add_column("Projects", justify="center", style="magenta")
+
+        for art in artists:
+            art_sum = ctx.get_artist_summary(art)
+            t_min = art_sum.get("tempo_min", 0.0)
+            t_max = art_sum.get("tempo_max", 0.0)
+            tempo_str = f"{t_min:.0f}-{t_max:.0f} BPM" if t_min and t_max and t_min != t_max else (f"{t_min:.0f} BPM" if t_min else "-")
+            table.add_row(
+                art.replace("-", " ").title(),
+                str(art_sum.get("albums_count", 0)),
+                str(art_sum.get("songs_count", 0)),
+                str(art_sum.get("stems_count", 0)),
+                tempo_str,
+                str(art_sum.get("projects_count", 0)),
+            )
+        console.print(table)
+        return
+
+    # Fallback to in-memory catalog
+    cat_songs = list_songs()
+    if console:
+        table = Table(title="[bold magenta]Groove Catalog (Catalog Definitions)[/bold magenta]")
+        table.add_column("ID", style="cyan", no_wrap=True)
+        table.add_column("Title", style="bold white")
+        table.add_column("Artist", style="green")
+        table.add_column("Tempo", justify="right", style="yellow")
+        table.add_column("Key", style="blue")
+        for song in cat_songs:
+            table.add_row(song.id, song.title, song.artist, f"{song.tempo_bpm:.0f} BPM", song.key)
+        console.print(table)
 
 
 def cmd_info(args):
@@ -527,6 +587,43 @@ def cmd_new_artist(args):
     print_msg(f"[bold green]Created artist README:[/bold green] {readme_path}")
 
 
+def cmd_new_album(args):
+    """Create a new album folder with README.md and album.yaml."""
+    ctx = detect_context()
+    tracks_dir = ctx.tracks_dir or Path("tracks")
+
+    artist_name = getattr(args, "artist", None) or ctx.artist
+    if not artist_name:
+        existing_artists = ctx.list_artists()
+        if existing_artists:
+            print_msg("[bold cyan]Existing artists:[/bold cyan]")
+            for idx, a in enumerate(existing_artists, 1):
+                print_msg(f"  [{idx}] {a}")
+            choice = input("Select artist number or enter new artist name: ").strip()
+            if choice.isdigit() and 1 <= int(choice) <= len(existing_artists):
+                artist_name = existing_artists[int(choice) - 1]
+            else:
+                artist_name = choice
+        else:
+            artist_name = input("Enter artist name: ").strip()
+
+    artist_slug = artist_name.lower().replace(" ", "-")
+    album_title = args.title.strip()
+    album_slug = album_title.lower().replace(" ", "-").replace("'", "")
+    album_dir = tracks_dir / artist_slug / album_slug
+
+    created = create_album_scaffold(
+        album_dir=album_dir,
+        title=album_title,
+        artist=artist_name.replace("-", " ").title(),
+        year=getattr(args, "year", None),
+        label=getattr(args, "label", "Tamla / Motown") or "Tamla / Motown",
+    )
+    print_msg(f"\n[bold green]Success![/bold green] Created album folder for '{album_title}': {album_dir}")
+    for k, p in created.items():
+        print_msg(f"  - [cyan]{p.name}[/cyan]")
+
+
 def cmd_new_song(args):
     """Create a new song study folder with README.md, tracks.csv, and chords.csml."""
     ctx = detect_context()
@@ -562,9 +659,17 @@ def cmd_new_song(args):
         song_title = input("Enter song title: ").strip()
 
     song_slug = song_title.lower().replace(" ", "-").replace("'", "")
-    song_dir = artist_dir / song_slug
 
-    album = getattr(args, "album", "") or "TBD"
+    # 3. Determine album and directory
+    album = getattr(args, "album", "") or (ctx.album or "")
+    album_slug = album.lower().replace(" ", "-") if album and album != "TBD" else ""
+    if album_slug:
+        album_dir = artist_dir / album_slug
+        album_dir.mkdir(parents=True, exist_ok=True)
+        song_dir = album_dir / song_slug
+    else:
+        song_dir = artist_dir / song_slug
+
     year = getattr(args, "year", "") or "TBD"
     key = getattr(args, "key", "") or "C"
     tempo = float(getattr(args, "tempo", 120.0) or 120.0)
@@ -573,7 +678,7 @@ def cmd_new_song(args):
         song_dir=song_dir,
         title=song_title,
         artist=artist_name.replace("-", " ").title(),
-        album=album,
+        album=album or "TBD",
         year=year,
         tempo_bpm=tempo,
         key=key,
@@ -756,6 +861,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_slice.add_argument("--subfolder", default="parsed_stems", help="Subfolder name for sliced stems")
     p_slice.set_defaults(func=cmd_slice)
 
+    # nav / navigator
+    p_nav = subparsers.add_parser("nav", aliases=["navigator", "tui"], help="Launch interactive terminal navigator (Seer style)")
+    p_nav.set_defaults(func=cmd_nav)
+
+    # new-album
+    p_nalb = subparsers.add_parser("new-album", help="Create a new album directory with README.md and album.yaml")
+    p_nalb.add_argument("title", help="Album title (e.g. 'Innervisions')")
+    p_nalb.add_argument("--artist", "-a", default=None, help="Artist name (defaults to current artist context)")
+    p_nalb.add_argument("--year", "-y", default=None, type=int, help="Release year (e.g. 1973)")
+    p_nalb.add_argument("--label", default="Tamla / Motown", help="Record label")
+    p_nalb.set_defaults(func=cmd_new_album)
+
     # foundations
     p_foundations = subparsers.add_parser("foundations", help="Read the core musicological principles of groove")
     p_foundations.set_defaults(func=cmd_foundations)
@@ -768,7 +885,10 @@ def main():
     args = parser.parse_args()
 
     if not args.command:
-        cmd_list(args)
+        if sys.stdin.isatty():
+            cmd_nav(args)
+        else:
+            cmd_list(args)
         return
 
     if hasattr(args, "func"):
@@ -779,3 +899,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -40,6 +40,69 @@ def create_artist_readme(
     return readme_path
 
 
+def create_album_scaffold(
+    album_dir: Path,
+    title: str,
+    artist: str,
+    year: Optional[int] = None,
+    label: str = "Tamla / Motown",
+    studios: Optional[List[str]] = None,
+    producers: Optional[List[str]] = None,
+    key_gear: Optional[List[str]] = None,
+    description: Optional[str] = None,
+    overwrite: bool = False,
+) -> Dict[str, Path]:
+    """Generate album-level folder with README.md and album.yaml."""
+    album_dir = Path(album_dir)
+    album_dir.mkdir(parents=True, exist_ok=True)
+    created: Dict[str, Path] = {}
+
+    readme_path = album_dir / "README.md"
+    if not readme_path.exists() or overwrite:
+        studios_list = "\n".join(f"- {s}" for s in (studios or ["TBD"]))
+        gear_list = "\n".join(f"- {g}" for g in (key_gear or ["TBD"]))
+        producers_str = ", ".join(producers) if producers else "TBD"
+        content = f"""# {title} ({year or 'TBD'})
+
+**Artist:** {artist}  
+**Release Year:** {year or 'TBD'}  
+**Label:** {label}  
+**Producers:** {producers_str}  
+
+## Overview
+{description or f"Album study and multitrack breakdown for {title} by {artist}."}
+
+## Recording Studios
+{studios_list}
+
+## Key Gear & Instrumentation
+{gear_list}
+
+## Track Studies
+"""
+        readme_path.write_text(content, encoding="utf-8")
+        created["readme"] = readme_path
+
+    yaml_path = album_dir / "album.yaml"
+    if not yaml_path.exists() or overwrite:
+        import yaml
+        data = {
+            "title": title,
+            "artist": artist,
+            "year": year,
+            "label": label,
+            "studios": studios or [],
+            "producers": producers or [],
+            "key_gear": key_gear or [],
+            "description": description or "",
+        }
+        with open(yaml_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(data, f, sort_keys=False)
+        created["yaml"] = yaml_path
+
+    return created
+
+
 def create_song_scaffold(
     song_dir: Path,
     title: str,

@@ -13,20 +13,28 @@
 
 - **Namespace Package**: `harmonic_resonance.groove` (under `src/harmonic_resonance/groove/`)
 - **Key Modules**:
-  - `context.py`: Directory context resolution (`Scope.ROOT`, `Scope.ARTIST`, `Scope.SONG`, `Scope.EXTERNAL`) enabling seamless CLI execution without repetitive `--artist` and `--song` flags.
-  - `catalog.py`: Dataclasses (`Song`, `Track`, `GrooveAnalysis`), curated registry of Stevie Wonder songs (*Superstition*, *Higher Ground*, *Sir Duke*, *I Wish*, *Living for the City*, *Isn't She Lovely*), and `tracks.csv` loaders/savers.
-  - `scaffold.py`: Interactive scaffolding for creating artist profiles (`create_artist_readme`), song studies (`create_song_scaffold`), and stem entries (`add_track_entry`).
+  - `context.py`: Directory context resolution (`Scope.ROOT`, `Scope.ARTIST`, `Scope.ALBUM`, `Scope.SONG`, `Scope.EXTERNAL`) and multi-level summation data engine (`get_catalog_summary`, `get_artist_summary`, `get_album_summary`, `get_song_summary`).
+  - `catalog.py`: Dataclasses (`Song`, `Album`, `Stem`, `GrooveAnalysis`), curated registry of Stevie Wonder albums and songs, and `tracks.csv` loaders/savers.
+  - `navigator/`: Textual-based interactive TUI navigator modelled after Seer Navigator:
+    - `app.py`: `GrooveNavigator(App)` with context-aware stack building and pop-up handling.
+    - `screens/catalog_screen.py`: Level 0 catalog summary grid + artists table.
+    - `screens/artist_screen.py`: Level 1 artist summary grid + albums table.
+    - `screens/album_screen.py`: Level 2 album summary grid (studios, producers, gear) + songs table.
+    - `screens/song_screen.py`: Level 3 song study dashboard + stems table with action keys (`o` audacity, `c` chords, `u` study, `a` align, `p` pad, `[` / `]` siblings).
+    - `viewers.py`: Markdown and CSML viewer modals.
+    - `sort_modal.py`: Interactive column sort modal.
+  - `scaffold.py`: Scaffolding for creating artist profiles (`create_artist_readme`), albums (`create_album_scaffold`), song studies (`create_song_scaffold`), and stem entries (`add_track_entry`).
   - `downloader.py`: Wrapper for `yt-dlp` and `ffmpeg` to download audio, apply offset alignments (lead-in trimming and pad delays), and execute full session regeneration (`regenerate_song_from_sources`).
-  - `audacity.py`: Audacity 4 discovery, process launching (`open_song_in_audacity`), and `.aup4` SQLite project inspector (`extract_offsets_from_aup4`, `calculate_relative_offsets`). Note: `.lof` and `launch.sh` files are obsolete.
+  - `audacity.py`: Audacity 4 discovery, process launching (`open_song_in_audacity`), and `.aup4` SQLite project inspector (`extract_offsets_from_aup4`, `calculate_relative_offsets`).
   - `study.py`: Musicological breakdowns of pocket, ghost notes, clavinet damping, bass articulations, and rehearsal strategies.
-  - `cli.py`: Rich-based command line interface (`list`, `info`, `study`, `chords`, `tracks`, `open`, `align`, `pad`, `regenerate`, `download`, `new`, `new-song`, `new-artist`, `add-track`).
+  - `cli.py`: Rich-based command line interface (`nav`, `list`, `info`, `study`, `chords`, `tracks`, `open`, `align`, `pad`, `regenerate`, `download`, `new`, `new-artist`, `new-album`, `new-song`, `add-track`).
   - `__main__.py`: Entry point for `python -m harmonic_resonance.groove`.
 
 ## Workflow & Development
 
 - **Context-aware invocation**:
   ```bash
-  cd tracks/stevie-wonder/higher-ground
+  cd tracks/stevie-wonder/innervisions/higher-ground
   groove info
   groove study
   groove chords
@@ -34,6 +42,11 @@
   groove open
   groove align --save
   groove pad
+  ```
+- **Interactive TUI Navigator**:
+  ```bash
+  groove nav       # Explicitly launch navigator
+  groove           # Auto-launches navigator in an interactive terminal
   ```
 - **Audacity 4 Session Loading**:
   Running `groove open` in the song folder loads `00_full_song.wav` as Track 1 followed by each stem in numeric order at timeline $t=0$, or opens the `<song>.aup4` project directly if present.
