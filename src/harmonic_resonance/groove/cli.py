@@ -114,6 +114,7 @@ def cmd_list(args):
 
         if console:
             table = Table(title=f"[bold magenta]Album Study: {art_title} • {title}{year}[/bold magenta]")
+            table.add_column("#", justify="right", style="cyan")
             table.add_column("Song Slug", style="cyan")
             table.add_column("Title", style="bold white")
             table.add_column("Tempo", justify="right", style="yellow")
@@ -124,10 +125,12 @@ def cmd_list(args):
 
             for art, alb, s_slug in songs:
                 s_sum = ctx.get_song_summary(s_slug, artist_slug=art, album_slug=alb)
+                trk_num = str(s_sum.get("track_number") or "-")
                 has_csml = "✓" if s_sum.get("has_chords") else "-"
                 has_proj = "✓" if s_sum.get("has_project") else "-"
                 tempo_str = f"{s_sum.get('tempo', 0.0):.0f} BPM" if s_sum.get("tempo", 0.0) > 0 else "-"
                 table.add_row(
+                    trk_num,
                     s_slug,
                     s_sum.get("title", s_slug),
                     tempo_str,
@@ -141,7 +144,8 @@ def cmd_list(args):
             print(f"\nSongs on {title}{year}:")
             for art, alb, s_slug in songs:
                 s_sum = ctx.get_song_summary(s_slug, artist_slug=art, album_slug=alb)
-                print(f"  - {s_slug:<20} ({s_sum.get('stems_count', 0)} tracks)")
+                trk_str = f"#{s_sum.get('track_number')}" if s_sum.get("track_number") else "  "
+                print(f"  {trk_str:>3} {s_slug:<20} ({s_sum.get('stems_count', 0)} tracks)")
         return
 
     if ctx.scope == Scope.ARTIST and ctx.artist:
@@ -823,6 +827,34 @@ def cmd_download(args):
         sys.exit(1)
 
 
+def cmd_collect_playlist(args):
+    """Ingest a full album playlist from YouTube, preserving descriptions and track order."""
+    from .playlist import collect_playlist
+
+    ctx = detect_context()
+    base_tracks = ctx.tracks_dir or Path("tracks")
+
+    def log_fn(msg: str):
+        print_msg(msg)
+
+    try:
+        res = collect_playlist(
+            playlist_url=args.url,
+            base_dir=base_tracks,
+            artist_slug=args.artist,
+            album_slug=args.album,
+            download_audio=not args.no_download,
+            audio_format=args.format,
+            force_download=args.force,
+            logger=log_fn,
+        )
+        print_msg(f"\n[bold green]Successfully collected album '{res['album']}' with {len(res['songs'])} songs![/bold green]")
+        print_msg(f"Directory: [cyan]{res['album_dir']}[/cyan]")
+    except Exception as e:
+        print_msg(f"[bold red]Collection error:[/bold red] {e}")
+        sys.exit(1)
+
+
 def cmd_new_artist(args):
     """Create a new artist folder with an initial README.md."""
     ctx = detect_context()
@@ -1119,6 +1151,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_slice.add_argument("--output", "-o", default=None, help="Base output directory (default: tracks/)")
     p_slice.add_argument("--subfolder", default="parsed_stems", help="Subfolder name for sliced stems")
     p_slice.set_defaults(func=cmd_slice)
+
+    # collect-playlist / collect / import-playlist
+    p_coll = subparsers.add_parser("collect-playlist", aliases=["collect", "import-playlist"], help="Ingest official YouTube playlist, parse descriptions/credits, preserve track order, and download full song references")
+    p_coll.add_argument("url", help="YouTube playlist URL")
+    p_coll.add_argument("--artist", "-a", default=None, help="Artist slug or name (auto-detected if omitted)")
+    p_coll.add_argument("--album", default=None, help="Album slug or title (auto-detected if omitted)")
+    p_coll.add_argument("--format", default="webm", choices=["webm", "opus", "wav", "flac", "mp3"], help="Audio format for full songs (default: webm)")
+    p_coll.add_argument("--no-download", action="store_true", help="Scaffold metadata and track registry without downloading audio")
+    p_coll.add_argument("--force", action="store_true", help="Force re-download of audio even if present")
+    p_coll.set_defaults(func=cmd_collect_playlist)
 
     # nav / navigator
     p_nav = subparsers.add_parser("nav", aliases=["navigator", "tui"], help="Launch interactive terminal navigator (Seer style)")

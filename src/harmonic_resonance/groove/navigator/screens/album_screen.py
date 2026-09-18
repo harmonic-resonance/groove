@@ -82,6 +82,7 @@ class AlbumScreen(Screen):
     def compose(self) -> ComposeResult:
         self.table = DataTable(id="songs-table")
         self.table.add_columns(
+            Text("#", justify="right"),
             "SONG",
             "TITLE",
             Text("TEMPO", justify="right"),
@@ -134,6 +135,7 @@ class AlbumScreen(Screen):
         for s_slug in self.songs:
             s_sum = self.ctx.get_song_summary(s_slug, artist_slug=self.artist_slug, album_slug=self.album_slug)
 
+            trk_num = str(s_sum.get("track_number") or "-")
             tempo_val = s_sum.get("tempo", 0.0)
             tempo_str = f"{tempo_val:.0f} BPM" if tempo_val > 0 else "-"
             stems_cnt = Text(str(s_sum.get("stems_count", 0)), justify="right")
@@ -142,6 +144,7 @@ class AlbumScreen(Screen):
             has_study = Text("✓", style="bold magenta", justify="center") if s_sum.get("has_study") else Text("-", justify="center")
 
             self.table.add_row(
+                Text(trk_num, justify="right", style="cyan"),
                 s_slug,
                 s_sum.get("title", s_slug),
                 Text(tempo_str, justify="right", style="yellow"),

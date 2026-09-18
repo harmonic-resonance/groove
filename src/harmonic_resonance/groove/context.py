@@ -169,9 +169,39 @@ class GrooveContext:
                 if is_album:
                     if album is not None and sub.name != album:
                         continue
-                    for child in sorted(sub.iterdir()):
-                        if child.is_dir() and not child.name.startswith(".") and not child.name.startswith("_"):
-                            results.append((art, sub.name, child.name))
+
+                    # Check if album has track order defined in album.yaml or CATALOG
+                    track_order: Dict[str, int] = {}
+                    album_yaml_path = sub / "album.yaml"
+                    if album_yaml_path.exists():
+                        try:
+                            import yaml
+                            with open(album_yaml_path, "r", encoding="utf-8") as yf:
+                                ydata = yaml.safe_load(yf) or {}
+                                for trk in ydata.get("tracks", []):
+                                    slug = trk.get("slug")
+                                    num = trk.get("track_number") or trk.get("number")
+                                    if slug and num is not None:
+                                        track_order[slug] = int(num)
+                        except Exception:
+                            pass
+
+                    cat_alb = get_album(sub.name)
+                    if cat_alb and hasattr(cat_alb, "tracks") and cat_alb.tracks:
+                        for trk in cat_alb.tracks:
+                            slug = trk.get("slug")
+                            num = trk.get("track_number") or trk.get("number")
+                            if slug and num is not None and slug not in track_order:
+                                track_order[slug] = int(num)
+
+                    children = [
+                        child.name for child in sub.iterdir()
+                        if child.is_dir() and not child.name.startswith(".") and not child.name.startswith("_")
+                    ]
+                    # Sort children by track_order if available, otherwise alphabetical
+                    children.sort(key=lambda name: (track_order.get(name, 999), name))
+                    for child_name in children:
+                        results.append((art, sub.name, child_name))
                 else:
                     # Legacy 2-tier: tracks/<artist>/<song>
                     if album is None:
@@ -468,10 +498,32 @@ class GrooveContext:
 
         from .catalog import get_song
         cat_song = get_song(song_dir.name)
+        track_number = getattr(cat_song, "track_number", None) if cat_song else None
+        song_title = cat_song.title if cat_song else None
+
+        alb_yaml = song_dir.parent / "album.yaml"
+        if alb_yaml.exists() and (track_number is None or song_title is None):
+            try:
+                import yaml
+                with open(alb_yaml, "r", encoding="utf-8") as yf:
+                    ydata = yaml.safe_load(yf) or {}
+                    for trk in ydata.get("tracks", []):
+                        if trk.get("slug") == song_dir.name:
+                            if track_number is None:
+                                track_number = trk.get("track_number") or trk.get("number")
+                            if song_title is None and trk.get("title"):
+                                song_title = trk.get("title")
+                            break
+            except Exception:
+                pass
+
+        if not song_title:
+            song_title = song_dir.name.replace("-", " ").title()
 
         return {
             "slug": song_dir.name,
-            "title": cat_song.title if cat_song else song_dir.name.replace("-", " ").title(),
+            "track_number": track_number,
+            "title": song_title,
             "artist": cat_song.artist if cat_song else song_dir.parent.name.replace("-", " ").title(),
             "album": cat_song.album if cat_song else "",
             "year": cat_song.year if cat_song else None,

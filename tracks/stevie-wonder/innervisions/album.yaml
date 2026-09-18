@@ -3,23 +3,89 @@ artist: Stevie Wonder
 year: 1973
 label: Tamla / Motown
 studios:
-  - Record Plant (Los Angeles)
-  - Media Sound (New York)
+- Record Plant (Los Angeles)
+- Media Sound (New York)
 producers:
-  - Stevie Wonder
-  - Malcolm Cecil (Associate)
-  - Robert Margouleff (Associate)
+- Stevie Wonder
+- Malcolm Cecil (Associate)
+- Robert Margouleff (Associate)
 key_gear:
-  - TONTO Modular Synthesizer
-  - ARP 2600
-  - Moog Bass
-  - Hohner Clavinet D6 with Mu-Tron III
-  - Ludwig Drum Kit
-  - Fender Rhodes
+- TONTO Modular Synthesizer
+- ARP 2600
+- Moog Bass
+- Hohner Clavinet D6 with Mu-Tron III
+- Ludwig Drum Kit
+- Fender Rhodes
 personnel:
   Stevie Wonder: All instruments and vocals (on Higher Ground and Living for the City)
   Malcolm Cecil: TONTO programming and engineering
   Robert Margouleff: TONTO programming and engineering
-description: >
-  Widely considered Stevie Wonder's masterpiece. Stevie played virtually every instrument on key tracks,
-  displaying virtuosic polyrhythmic groove mastery and pioneering synthesizer orchestration.
+description: 'Widely considered Stevie Wonder''s masterpiece. Stevie played virtually
+  every instrument on key tracks, displaying virtuosic polyrhythmic groove mastery
+  and pioneering synthesizer orchestration.
+
+  '
+tracks:
+- track_number: 1
+  title: Too High
+  slug: too-high
+  duration: 276
+  duration_formatted: '4:36'
+  url: https://www.youtube.com/watch?v=UvtYEdYjkJM
+  video_id: UvtYEdYjkJM
+- track_number: 2
+  title: Visions
+  slug: visions
+  duration: 323
+  duration_formatted: '5:23'
+  url: https://www.youtube.com/watch?v=fy4fMlLj_B8
+  video_id: fy4fMlLj_B8
+- track_number: 3
+  title: Living For The City
+  slug: living-for-the-city
+  duration: 443
+  duration_formatted: '7:23'
+  url: https://www.youtube.com/watch?v=ghLWjyOOLno
+  video_id: ghLWjyOOLno
+- track_number: 4
+  title: Golden Lady
+  slug: golden-lady
+  duration: 298
+  duration_formatted: '4:58'
+  url: https://www.youtube.com/watch?v=CXCTjAMR3eA
+  video_id: CXCTjAMR3eA
+- track_number: 5
+  title: Higher Ground
+  slug: higher-ground
+  duration: 223
+  duration_formatted: '3:43'
+  url: https://www.youtube.com/watch?v=1esf0efHbjM
+  video_id: 1esf0efHbjM
+- track_number: 6
+  title: Jesus Children Of America
+  slug: jesus-children-of-america
+  duration: 250
+  duration_formatted: '4:10'
+  url: https://www.youtube.com/watch?v=8o8FVoib92w
+  video_id: 8o8FVoib92w
+- track_number: 7
+  title: All In Love Is Fair
+  slug: all-in-love-is-fair
+  duration: 222
+  duration_formatted: '3:42'
+  url: https://www.youtube.com/watch?v=1surYguNfEg
+  video_id: 1surYguNfEg
+- track_number: 8
+  title: Don't You Worry 'Bout A Thing
+  slug: dont-you-worry-bout-a-thing
+  duration: 285
+  duration_formatted: '4:45'
+  url: https://www.youtube.com/watch?v=RxsBc5p-dPU
+  video_id: RxsBc5p-dPU
+- track_number: 9
+  title: He's Misstra Know-It-All
+  slug: hes-misstra-know-it-all
+  duration: 335
+  duration_formatted: '5:35'
+  url: https://www.youtube.com/watch?v=uivvYGyQiow
+  video_id: uivvYGyQiow

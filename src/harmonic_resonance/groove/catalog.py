@@ -4,7 +4,7 @@ catalog.py - Curated database of groove masterpieces and isolated stems.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -48,6 +48,7 @@ class Song:
     youtube_deconstruction_url: Optional[str] = None
     deconstruction_slices: Optional[List[Dict]] = None
     full_song_url: Optional[str] = None
+    track_number: Optional[int] = None
 
 
 @dataclass
@@ -63,6 +64,7 @@ class Album:
     key_gear: List[str] = field(default_factory=list)
     personnel: Dict[str, str] = field(default_factory=dict)
     description: str = ""
+    tracks: List[Dict[str, Any]] = field(default_factory=list)
 
 
 ALBUMS: Dict[str, Album] = {
@@ -210,6 +212,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=125.0,
         key="E♭ minor",
         time_signature="4/4",
+        track_number=5,
         full_song_url="https://www.youtube.com/watch?v=1esf0efHbjM",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=7hR9qQZkLw8",
         stems=[
@@ -402,6 +405,8 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=98.0,
         key="F# minor",
         time_signature="4/4",
+        track_number=3,
+        full_song_url="https://www.youtube.com/watch?v=ghLWjyOOLno",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=W3a4jE9x1sQ",
         stems=[
             Stem(
