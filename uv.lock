@@ -436,7 +436,7 @@ requires-dist = [
     { name = "click" },
     { name = "pyyaml" },
     { name = "rich" },
-    { name = "textual", specifier = ">=0.40.0" },
+    { name = "textual" },
     { name = "yt-dlp" },
 ]
 
