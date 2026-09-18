@@ -93,7 +93,7 @@ def cmd_nav(args):
         run_navigator()
     except ImportError as e:
         print_msg(f"[bold red]Error launching navigator:[/bold red] {e}")
-        print_msg("[yellow]Ensure textual is installed: uv run pip install -e .[/yellow]")
+        print_msg("[yellow]Ensure textual is installed: uv tool install --editable . --reinstall (or uv pip install -e .)[/yellow]")
         sys.exit(1)
 
 
