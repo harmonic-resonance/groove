@@ -1,2 +1,8 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=2UkgWQ4yx5Y,2UkgWQ4yx5Y,3:02,official_audio,0.000000,Master full stereo mix reference track
+1,drums,Drums,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,02:59,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 02:59)
+2,clavinet,Clavinet,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,02:58,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (02:59 - 05:57)
+3,alto-sax,Alto Sax,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,02:57,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (05:57 - 08:54)
+4,bass,Bass,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,02:59,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (08:54 - 11:53)
+5,vocals,Vocals,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,02:55,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (11:53 - 14:48)
+6,instrumental,Instrumental,https://www.youtube.com/watch?v=D4PW5oyWWW0,D4PW5oyWWW0,03:00,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (14:48 - 17:48)

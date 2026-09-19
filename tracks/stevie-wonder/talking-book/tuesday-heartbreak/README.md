@@ -48,8 +48,17 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Tuesday Heartbreak.
+A smooth, sultry mid-tempo funk groove centered on syncopated Clavinet comping and expressive saxophone counter-melodies:
+- **Clavinet:** Stevie's Hohner Clavinet provides the rhythmic and harmonic spine, playing buoyant staccato 16th-note chords with dampening and dynamic accentuation.
+- **Drums:** Stevie on the kit lays down an unhurried, deep pocket groove with a crisp backbeat and open-hat accents on the off-beats.
+- **Alto Sax (David Sanborn):** Features one of David Sanborn's career-defining early studio appearances, delivering searing, blues-drenched alto sax lines and impassioned fills between Stevie's vocal lines.
+- **Bass:** Deep, melodic electric bass groove locking directly with Stevie's kick drum pattern.
+- **Vocals:** Intimate lead vocals accompanied by layered harmonized backing vocals and vocables.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Drums):** Solo to study Stevie's internal clock and relaxed pocket feel at ~88 BPM.
+- **Track 2 (Clavinet):** Solo to transcribe and practice the syncopated chord comping and right-hand bounce.
+- **Track 3 (Alto Sax):** Solo to study David Sanborn's tone, pitch bends, and expressive blues ornaments.
+- **Track 4 (Bass):** Mute to practice laying down the warm bass groove against the Clavinet and drums.
+- **Track 5 (Vocals):** Solo to analyze vocal inflections and dynamic phrase endings.
+- **Track 6 (Instrumental Full Mix):** Jam or solo sax/keys along with the complete backing arrangement.
