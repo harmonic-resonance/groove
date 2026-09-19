@@ -44,8 +44,16 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for As.
+One of the crowning achievements of Stevie Wonder's catalog, blending jazz harmony, Latin groove, and ecstatic gospel celebration at ~85 BPM:
+- **Fender Rhodes (Herbie Hancock):** Legendary jazz giant Herbie Hancock guests on electric piano, weaving intricate neo-classical/jazz chord substitutions, fluid arpeggios, and rhythmic comping behind Stevie.
+- **Bass (Nathan Watts):** Nathan Watts provides an iconic, melodic masterclass on electric bass, locking with the kick on the downbeats and dancing through syncopated octave leaps and scalar runs in the vamp.
+- **Guitars (Dean Parks & Michael Sembello):** Dual guitar work providing sparkling acoustic rhythm strumming and tight funk electric guitar scratches that add percussive grit.
+- **Drums & Percussion (Greg Brown):** Solid, unyielding pocket that builds in dynamic intensity as the 7-minute track reaches its transcendent gospel-vamp climax.
+- **Vocals (Stevie Wonder & Mary Lee Whitney):** From tender, reflective soul verses to full-throated ecstatic declarations in the extended vamp.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Vocals):** Solo to study Stevie's vocal dynamics and Mary Lee Whitney's impassioned soprano response lines.
+- **Track 2 (Rhodes):** Solo to transcribe Herbie Hancock's legendary jazz chord voicings, trills, and rhythmic pushes.
+- **Track 3 (Guitar):** Solo to inspect Dean Parks and Michael Sembello's rhythmic separation and acoustic/electric layering.
+- **Track 4 (Drums):** Mute to lock into the groove with Herbie's Rhodes and Nathan's bass.
+- **Track 5 (Bass):** Mute to practice Nathan Watts' iconic bassline and build stamina across the epic 7-minute turnaround.

@@ -1,2 +1,7 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=eLbmdG8U60E,eLbmdG8U60E,7:08,official_audio,0.000000,Master full stereo mix reference track
+1,vocals,Vocals,https://www.youtube.com/watch?v=IJTAeubJovc,IJTAeubJovc,06:53,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 06:53)
+2,rhodes,Rhodes,https://www.youtube.com/watch?v=IJTAeubJovc,IJTAeubJovc,07:10,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (06:53 - 14:03)
+3,guitar,Guitar,https://www.youtube.com/watch?v=IJTAeubJovc,IJTAeubJovc,07:08,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (14:03 - 21:11)
+4,drums,Drums,https://www.youtube.com/watch?v=IJTAeubJovc,IJTAeubJovc,07:09,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (21:11 - 28:20)
+5,bass,Bass,https://www.youtube.com/watch?v=IJTAeubJovc,IJTAeubJovc,07:09,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (28:20 - 35:29)
