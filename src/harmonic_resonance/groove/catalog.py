@@ -101,6 +101,17 @@ ALBUMS: Dict[str, Album] = {
         key_gear=["TONTO Modular Synthesizer", "ARP 2600", "Moog Bass", "Hohner Clavinet D6", "Ludwig Drums"],
         description="Peak of the TONTO era. Stevie played virtually all instruments on masterpieces like 'Higher Ground' and 'Living for the City', demonstrating total groove command.",
     ),
+    "fulfillingness-first-finale": Album(
+        id="fulfillingness-first-finale",
+        title="Fulfillingness' First Finale",
+        artist="Stevie Wonder",
+        year=1974,
+        label="Tamla / Motown",
+        studios=["Record Plant (Los Angeles)", "Media Sound (New York)", "Electric Lady Studios (NYC)"],
+        producers=["Stevie Wonder", "Malcolm Cecil (Associate)", "Robert Margouleff (Associate)"],
+        key_gear=["TONTO Modular Synthesizer", "Hohner Clavinet D6", "Fender Rhodes", "Moog Synthesizer"],
+        description="The introspective and deeply soulful follow-up to Innervisions, featuring groove masterpieces 'Boogie On Reggae Woman' and 'You Haven't Done Nothin''.",
+    ),
     "songs-in-the-key-of-life": Album(
         id="songs-in-the-key-of-life",
         title="Songs in the Key of Life",
