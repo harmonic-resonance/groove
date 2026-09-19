@@ -1,2 +1,7 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=_ZditPOzJnM,_ZditPOzJnM,7:06,official_audio,0.000000,Master full stereo mix reference track
+1,lead-vocal,Lead Vocal,https://www.youtube.com/watch?v=SIXR4ABSRcA,SIXR4ABSRcA,06:48,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 06:48)
+2,backing-vocals,Backing Vocals,https://www.youtube.com/watch?v=SIXR4ABSRcA,SIXR4ABSRcA,05:13,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (06:48 - 12:01)
+3,rhodes-clavinet-synth-strings,"Rhodes, Clavinet, Synth Strings",https://www.youtube.com/watch?v=SIXR4ABSRcA,SIXR4ABSRcA,06:53,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (12:01 - 18:54)
+4,drums-percussion,"Drums, Percussion",https://www.youtube.com/watch?v=SIXR4ABSRcA,SIXR4ABSRcA,06:34,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (18:54 - 25:28)
+5,bass,Bass,https://www.youtube.com/watch?v=SIXR4ABSRcA,SIXR4ABSRcA,06:24,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (25:28 - 31:52)

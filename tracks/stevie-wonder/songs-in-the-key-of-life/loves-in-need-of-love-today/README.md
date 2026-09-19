@@ -44,8 +44,15 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Love's In Need Of Love Today.
+A majestic, devotional slow-soul groove at ~74 BPM that opens *Songs in the Key of Life*. Stevie crafts an entire gospel-soul choir and rhythm orchestra largely on his own:
+- **Keyboards & Orchestration:** Stevie weaves Fender Rhodes electric piano, dampened Hohner Clavinet rhythm chops, and warm polyphonic synth strings into an orchestral tapestry.
+- **Drums & Percussion:** Relaxed, deeply grounded backbeat on the snare with rim accents, shaker, and tambourine maintaining forward motion.
+- **Bass:** Deep, singing electric bass line providing warm melodic counterpoint under the chord extensions.
+- **Vocals (Lead & Choral Layers):** Stevie's impassioned lead sermon transitions into stacked, multi-octave choral harmonies that simulate a full Sunday congregation.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Lead Vocal):** Solo to study Stevie's breath control, dynamic shading, and gospel melismas across the slow tempo.
+- **Track 2 (Backing Vocals):** Solo to analyze the breathtaking stacked vocal harmony voicings (soprano, tenor, baritone overdubs).
+- **Track 3 (Rhodes, Clavinet, Synth Strings):** Solo to transcribe the keyboard voice leading, subtle clavinet rhythmic damping, and synth string pads.
+- **Track 4 (Drums & Percussion):** Mute to practice playing relaxed, unhurried time at 74 BPM without dragging.
+- **Track 5 (Bass):** Mute to practice walking the expressive, warm bass line with full harmonic awareness.
