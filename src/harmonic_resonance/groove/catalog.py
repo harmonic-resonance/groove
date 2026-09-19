@@ -292,6 +292,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="B major",
         time_signature="4/4",
+        track_number=5,
         full_song_url="https://www.youtube.com/watch?v=EnNgASBdCeo",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=J3PzN3lK0nE",
@@ -357,6 +358,7 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=106.0,
         key="E♭ minor",
         time_signature="4/4",
+        track_number=6,
         full_song_url="https://www.youtube.com/watch?v=c7IYSAUj78g",
         youtube_playlist_url="https://youtube.com/playlist?list=PL69e4qjLiDmHGIPAfcA0sO_gWD7n4ELzt",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=wDZFfXn9phg",
@@ -474,6 +476,8 @@ CATALOG: Dict[str, Song] = {
         tempo_bpm=120.0,
         key="C# minor / E major",
         time_signature="4/4",
+        track_number=11,
+        full_song_url="https://www.youtube.com/watch?v=7YGc6RMOYF8",
         youtube_deconstruction_url="https://www.youtube.com/watch?v=9g0HhG0L1pA",
         stems=[
             Stem(

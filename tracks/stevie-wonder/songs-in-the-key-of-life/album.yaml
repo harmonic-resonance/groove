@@ -3,17 +3,17 @@ artist: Stevie Wonder
 year: 1976
 label: Tamla / Motown
 studios:
-  - Crystal Sound (Hollywood)
-  - The Hit Factory (New York)
-  - Record Plant (Sausalito)
+- Crystal Sound (Hollywood)
+- The Hit Factory (New York)
+- Record Plant (Sausalito)
 producers:
-  - Stevie Wonder
+- Stevie Wonder
 key_gear:
-  - Yamaha GX-1 Polyphonic Synthesizer
-  - Fender Rhodes
-  - Hohner Clavinet D6
-  - Moog Synthesizer
-  - Acoustic Piano
+- Yamaha GX-1 Polyphonic Synthesizer
+- Fender Rhodes
+- Hohner Clavinet D6
+- Moog Synthesizer
+- Acoustic Piano
 personnel:
   Stevie Wonder: Lead vocals, Fender Rhodes, Clavinet, harmonica, drums, Yamaha GX-1
   Nathan Watts: Bass guitar (Sir Duke, I Wish, As)
@@ -24,6 +24,156 @@ personnel:
   Trevor Lawrence: Tenor saxophone
   Raymond Maldonado: Trumpet
   Steve Madaio: Trumpet
-description: >
-  Stevie Wonder's magnum opus double album. Featuring an expanded virtuoso live rhythm section
-  anchored by bassist Nathan Watts and drummer Raymond Pounds alongside Stevie's legendary keys.
+description: 'Stevie Wonder''s magnum opus double album. Featuring an expanded virtuoso
+  live rhythm section anchored by bassist Nathan Watts and drummer Raymond Pounds
+  alongside Stevie''s legendary keys.
+
+  '
+tracks:
+- track_number: 1
+  title: Love's In Need Of Love Today
+  slug: loves-in-need-of-love-today
+  duration: 426
+  duration_formatted: '7:06'
+  url: https://www.youtube.com/watch?v=_ZditPOzJnM
+  video_id: _ZditPOzJnM
+- track_number: 2
+  title: Have A Talk With God
+  slug: have-a-talk-with-god
+  duration: 162
+  duration_formatted: '2:42'
+  url: https://www.youtube.com/watch?v=rm9UDrEq3vs
+  video_id: rm9UDrEq3vs
+- track_number: 3
+  title: Village Ghetto Land
+  slug: village-ghetto-land
+  duration: 205
+  duration_formatted: '3:25'
+  url: https://www.youtube.com/watch?v=-DY5fqecP5c
+  video_id: -DY5fqecP5c
+- track_number: 4
+  title: Contusion
+  slug: contusion
+  duration: 226
+  duration_formatted: '3:46'
+  url: https://www.youtube.com/watch?v=xUI95wXggB4
+  video_id: xUI95wXggB4
+- track_number: 5
+  title: Sir Duke
+  slug: sir-duke
+  duration: 233
+  duration_formatted: '3:53'
+  url: https://www.youtube.com/watch?v=EnNgASBdCeo
+  video_id: EnNgASBdCeo
+- track_number: 6
+  title: I Wish
+  slug: i-wish
+  duration: 252
+  duration_formatted: '4:12'
+  url: https://www.youtube.com/watch?v=c7IYSAUj78g
+  video_id: c7IYSAUj78g
+- track_number: 7
+  title: Knocks Me Off My Feet
+  slug: knocks-me-off-my-feet
+  duration: 216
+  duration_formatted: '3:36'
+  url: https://www.youtube.com/watch?v=3CB0_YU4G6Y
+  video_id: 3CB0_YU4G6Y
+- track_number: 8
+  title: Pastime Paradise
+  slug: pastime-paradise
+  duration: 208
+  duration_formatted: '3:28'
+  url: https://www.youtube.com/watch?v=1TLFnokO1Oo
+  video_id: 1TLFnokO1Oo
+- track_number: 9
+  title: Summer Soft
+  slug: summer-soft
+  duration: 254
+  duration_formatted: '4:14'
+  url: https://www.youtube.com/watch?v=mD96b2xOraM
+  video_id: mD96b2xOraM
+- track_number: 10
+  title: Ordinary Pain
+  slug: ordinary-pain
+  duration: 383
+  duration_formatted: '6:23'
+  url: https://www.youtube.com/watch?v=WXgY6NZ429I
+  video_id: WXgY6NZ429I
+- track_number: 11
+  title: Isn't She Lovely
+  slug: isnt-she-lovely
+  duration: 394
+  duration_formatted: '6:34'
+  url: https://www.youtube.com/watch?v=7YGc6RMOYF8
+  video_id: 7YGc6RMOYF8
+- track_number: 12
+  title: Joy Inside My Tears
+  slug: joy-inside-my-tears
+  duration: 390
+  duration_formatted: '6:30'
+  url: https://www.youtube.com/watch?v=kXBaySil6YY
+  video_id: kXBaySil6YY
+- track_number: 13
+  title: Black Man
+  slug: black-man
+  duration: 510
+  duration_formatted: '8:30'
+  url: https://www.youtube.com/watch?v=XCX2o7zOzg8
+  video_id: XCX2o7zOzg8
+- track_number: 14
+  title: Ngiculela-Es Una Historia-I Am Singing
+  slug: ngiculela-es-una-historia-i-am-singing
+  duration: 229
+  duration_formatted: '3:49'
+  url: https://www.youtube.com/watch?v=Fj4ZnTRmfrg
+  video_id: Fj4ZnTRmfrg
+- track_number: 15
+  title: If It's Magic
+  slug: if-its-magic
+  duration: 192
+  duration_formatted: '3:12'
+  url: https://www.youtube.com/watch?v=gU-DfjTWemQ
+  video_id: gU-DfjTWemQ
+- track_number: 16
+  title: As
+  slug: as
+  duration: 428
+  duration_formatted: '7:08'
+  url: https://www.youtube.com/watch?v=eLbmdG8U60E
+  video_id: eLbmdG8U60E
+- track_number: 17
+  title: Another Star
+  slug: another-star
+  duration: 508
+  duration_formatted: '8:28'
+  url: https://www.youtube.com/watch?v=TJU_HGZFjgo
+  video_id: TJU_HGZFjgo
+- track_number: 18
+  title: Saturn
+  slug: saturn
+  duration: 294
+  duration_formatted: '4:54'
+  url: https://www.youtube.com/watch?v=-FvzpOF0nDQ
+  video_id: -FvzpOF0nDQ
+- track_number: 19
+  title: Ebony Eyes
+  slug: ebony-eyes
+  duration: 249
+  duration_formatted: '4:09'
+  url: https://www.youtube.com/watch?v=PSDIX5GIicE
+  video_id: PSDIX5GIicE
+- track_number: 20
+  title: All Day Sucker
+  slug: all-day-sucker
+  duration: 306
+  duration_formatted: '5:06'
+  url: https://www.youtube.com/watch?v=ZwspyQxIPeM
+  video_id: ZwspyQxIPeM
+- track_number: 21
+  title: Easy Goin' Evening (My Mama's Call)
+  slug: easy-goin-evening-my-mamas-call
+  duration: 237
+  duration_formatted: '3:57'
+  url: https://www.youtube.com/watch?v=dQWt2o08qh8
+  video_id: dQWt2o08qh8
