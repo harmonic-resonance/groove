@@ -54,8 +54,16 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for You Are The Sunshine Of My Life.
+A sublime jazz-soul and Bossa Nova crossover at ~134 BPM (half-time feel ~67 BPM). The pocket is warm, tender, and effortlessly swinging:
+- **Drums & Congas:** Scott Matthews' drum kit pairs with Daniel Ben Zebulon's syncopated congas to create a relaxed, buoyant Latin Bossa pulse. The rim clicks and shaker add gentle forward motion.
+- **Fender Rhodes:** Stevie's electric piano serves as the melodic and harmonic heart, voicing rich major-7th and extended jazz chords with delicate dynamic touch.
+- **Bass:** Scott Matthews provides a grounding, melodic electric bass groove that rolls gently between root notes and fifths.
+- **Horns:** Tasteful brass punctuation providing warmth during the transitional turnarounds and choruses.
+- **Vocals:** Renowned vocal arrangement beginning with guest lead vocalists Jim Gilstrap ("You are the sunshine of my life...") and Lani Groves ("That's why I'll always be around..."), followed by Stevie's entrance and Gloria Barley's backing harmonies.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Drums & Congas):** Solo to study the interplay between the acoustic drum kit and Latin conga patterns.
+- **Track 2 (Bass):** Mute to practice laying down the warm, supportive Bossa-soul bass line.
+- **Track 3 (Fender Rhodes):** Solo to transcribe Stevie's extended jazz-pop chord voicings and subtle voice leading.
+- **Track 4 (Horns):** Solo to inspect brass section voicing, tuning, and timing.
+- **Track 5 (Vocals):** Solo to analyze the transition between the introductory vocalists and Stevie's soaring lead vocal performance.
