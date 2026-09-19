@@ -1,2 +1,10 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=CXCTjAMR3eA,CXCTjAMR3eA,4:58,official_audio,0.000000,Master full stereo mix reference track
+1,drums,Drums,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,04:32,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 04:32)
+2,bass,Bass,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,04:27,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (04:32 - 08:59)
+3,guitar,Guitar,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,04:21,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (08:59 - 13:20)
+4,synth,Synth,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,03:35,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (13:20 - 16:55)
+5,organ,Organ,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,02:57,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (16:55 - 19:52)
+6,piano,Piano,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,04:56,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (19:52 - 24:48)
+7,lead-vocals,Lead Vocals,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,03:57,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (24:48 - 28:45)
+8,double-vocal,Double Vocal,https://www.youtube.com/watch?v=rIl4TAXsQZI,rIl4TAXsQZI,03:02,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (28:45 - 31:47)

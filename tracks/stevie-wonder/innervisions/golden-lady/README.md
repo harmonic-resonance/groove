@@ -44,8 +44,18 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Golden Lady.
+A breathtaking soul ballad that transitions into one of music history's greatest modulation vamps (rising through successive half-step key changes in the outro):
+- **Piano & Organ:** Stevie's acoustic piano anchors the harmonic progression with descending chromatic bass movements, while warm Hammond organ pads fill the mid-range sustain.
+- **Synthesizer (TONTO):** Tasteful Moog/TONTO synthesizer brass-like leads and melodic flourishes that soar over the chord transitions.
+- **Drums:** Stevie on drums plays with exquisite dynamic control—tasteful rim knocks during the tender verse, opening up into full ride cymbal crashes and authoritative snare hits as the song modulates.
+- **Bass:** Deep, singing electric bass line outlining the root notes and chromatic transitions with warm sustain.
+- **Guitar:** Subtle acoustic and electric rhythm guitar comping that adds harmonic shimmer.
+- **Vocals (Lead & Double):** Stevie's tender, vulnerable lead performance paired with an intimate second vocal take (Double Vocal) providing stereo doubling and emotive ad-libs.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Drums):** Solo to practice the dynamic escalation from gentle ballad to powerful modulation powerhouse.
+- **Track 2 (Bass):** Mute to practice navigating the chromatic modulations across the outro vamp.
+- **Track 3 (Guitar):** Solo to hear the acoustic comping underneath the keyboard wall.
+- **Track 4 & 5 (Synth & Organ):** Solo to study how TONTO synth and Hammond organ interlace without cluttering the acoustic piano.
+- **Track 6 (Piano):** Solo to transcribe Stevie's masterclass jazz-soul chord voicings and chromatic bass motion.
+- **Track 7 & 8 (Lead & Double Vocals):** Solo and pan against each other to analyze vocal doubling micro-timing and phrasing differences.
