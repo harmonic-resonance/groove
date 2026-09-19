@@ -26,5 +26,5 @@
 6. **[Superstition](superstition/)** (4:28)
 7. **[Big Brother](big-brother/)** (3:34)
 8. **[Blame It On The Sun](blame-it-on-the-sun/)** (3:26)
-9. **[Lookin' For Another Pure Love (Album Version)](lookin-for-another-pure-love-album-version/)** (4:44)
+9. **[Lookin' For Another Pure Love](lookin-for-another-pure-love/)** (4:44)
 10. **[I Believe (When I Fall In Love It Will Be Forever)](i-believe-when-i-fall-in-love-it-will-be-forever/)** (4:53)
