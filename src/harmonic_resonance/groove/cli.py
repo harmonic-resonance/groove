@@ -1031,6 +1031,92 @@ def cmd_slice(args):
     print_msg(f"\n[bold green]Success![/bold green] Sliced {len(created)} stems into: {out_dir}")
 
 
+def cmd_inspect_video(args):
+    """Inspect YouTube video for isolated tracks and chapter markers."""
+    from .stems_video import inspect_stems_video
+    from rich.table import Table
+    from rich.panel import Panel
+
+    try:
+        info = inspect_stems_video(args.url)
+    except Exception as e:
+        print_msg(f"[bold red]Inspection error:[/bold red] {e}")
+        sys.exit(1)
+
+    if args.json:
+        import json
+        print(json.dumps(info, indent=2))
+        return
+
+    panel_content = (
+        f"[bold cyan]Title:[/bold cyan] {info['title']}\n"
+        f"[bold cyan]URL:[/bold cyan] {info['url']} ([green]{info['video_id']}[/green])\n"
+        f"[bold cyan]Duration:[/bold cyan] {info['duration_formatted']} ({info['duration']:.1f}s)\n"
+        f"[bold cyan]Uploader:[/bold cyan] {info['uploader']}\n"
+        f"[bold cyan]Chapters / Stems Found:[/bold cyan] [bold yellow]{info['chapter_count']}[/bold yellow]"
+    )
+    if console:
+        console.print(Panel(panel_content, title="[bold magenta]Isolated Stems Video Inspection[/bold magenta]"))
+    else:
+        print(panel_content)
+
+    if info["chapters"]:
+        if console:
+            table = Table(title="Detected Stem Chapters / Markers")
+            table.add_column("#", justify="right", style="cyan", no_wrap=True)
+            table.add_column("Stem Name / Chapter", style="green")
+            table.add_column("Slug", style="dim")
+            table.add_column("Start", justify="right", style="yellow")
+            table.add_column("End", justify="right", style="yellow")
+            table.add_column("Duration", justify="right", style="magenta")
+            table.add_column("Source", style="blue")
+
+            for ch in info["chapters"]:
+                table.add_row(
+                    f"{ch['index']:02d}",
+                    ch["title"],
+                    ch["slug"],
+                    ch["start_formatted"],
+                    ch["end_formatted"],
+                    ch["duration_formatted"],
+                    ch.get("source", "chapters"),
+                )
+            console.print(table)
+        else:
+            for ch in info["chapters"]:
+                print(f"[{ch['index']:02d}] {ch['title']} ({ch['start_formatted']} - {ch['end_formatted']})")
+    else:
+        print_msg("[yellow]No chapters or description timestamps detected in this video.[/yellow]")
+
+
+def cmd_slice_video(args):
+    """Download video with isolated tracks and slice into stems, updating tracks.csv."""
+    from .stems_video import slice_stems_video
+
+    ctx = detect_context()
+    target_dir = None
+    if args.output:
+        target_dir = Path(args.output).resolve()
+    elif ctx.song_dir:
+        target_dir = ctx.song_dir
+    else:
+        print_msg("[bold red]Error:[/bold red] Must run within a song directory or specify --output <dir>")
+        sys.exit(1)
+
+    try:
+        sliced = slice_stems_video(
+            url_or_id=args.url,
+            output_dir=target_dir,
+            audio_format=args.format,
+            update_tracks_csv=not args.no_csv,
+            logger=print_msg,
+        )
+        print_msg(f"[bold green]Successfully sliced {len(sliced)} stems into {target_dir}![/bold green]")
+    except Exception as e:
+        print_msg(f"[bold red]Slicing error:[/bold red] {e}")
+        sys.exit(1)
+
+
 def cmd_foundations(args):
     """Display the core principles of what makes a good groove."""
     if console:
@@ -1161,6 +1247,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_coll.add_argument("--no-download", action="store_true", help="Scaffold metadata and track registry without downloading audio")
     p_coll.add_argument("--force", action="store_true", help="Force re-download of audio even if present")
     p_coll.set_defaults(func=cmd_collect_playlist)
+
+    # inspect-video / inspect-stems
+    p_insp_vid = subparsers.add_parser("inspect-video", aliases=["inspect-stems"], help="Inspect YouTube video for isolated tracks and chapter markers")
+    p_insp_vid.add_argument("url", help="YouTube video URL or Video ID")
+    p_insp_vid.add_argument("--json", action="store_true", help="Output inspection results as JSON")
+    p_insp_vid.set_defaults(func=cmd_inspect_video)
+
+    # slice-video / slice-stems
+    p_slice_vid = subparsers.add_parser("slice-video", aliases=["slice-stems"], help="Download video and slice into stems, updating tracks.csv")
+    p_slice_vid.add_argument("url", help="YouTube video URL or Video ID")
+    p_slice_vid.add_argument("--output", "-o", default=None, help="Song directory to slice stems into (defaults to current context)")
+    p_slice_vid.add_argument("--format", "-f", default="webm", choices=["webm", "wav", "opus"], help="Output audio format (default: webm)")
+    p_slice_vid.add_argument("--no-csv", action="store_true", help="Do not update tracks.csv")
+    p_slice_vid.set_defaults(func=cmd_slice_video)
 
     # nav / navigator
     p_nav = subparsers.add_parser("nav", aliases=["navigator", "tui"], help="Launch interactive terminal navigator (Seer style)")

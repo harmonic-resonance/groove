@@ -1,2 +1,8 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=RxsBc5p-dPU,RxsBc5p-dPU,4:45,official_audio,0.000000,Master full stereo mix reference track
+1,piano,Piano,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,04:45,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 04:45)
+2,drums-percussion,Drums & Percussion,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,04:38,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (04:45 - 09:23)
+3,bass,Bass,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,04:38,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (09:23 - 14:01)
+4,backing-vocals,Backing Vocals,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,03:23,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (14:01 - 17:24)
+5,lead-vocals,Lead Vocals,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,04:43,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (17:24 - 22:07)
+6,instrumental,Instrumental,https://www.youtube.com/watch?v=wDn4ijR_054,wDn4ijR_054,04:44,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (22:07 - 26:51)

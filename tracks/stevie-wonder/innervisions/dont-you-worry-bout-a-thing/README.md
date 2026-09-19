@@ -48,8 +48,15 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Don't You Worry 'Bout A Thing.
+A dazzling Latin-funk fusion masterclass. Stevie fuses a propulsive Afro-Cuban montuno piano vamp with an unstoppable funk backbeat and polyrhythmic Latin percussion. The rhythm section balances a relaxed, playful swagger with laser-tight micro-timing:
+- **Piano (Montuno Vamp):** Stevie's acoustic piano drives the harmonic engine. The left hand anchors the syncopated octaves while the right hand cascades through chromatic passing tones and montuno arpeggios.
+- **Drums & Latin Percussion:** Interlocking cowbell, congas, timbales, and trap drums create a dense polyrhythmic web. The kick drum punches on beat 1 and the "&" of 2, locking with the montuno push.
+- **Bass:** Fluid, melodic electric bass lines that weave between the piano's low register and the percussion accents.
+- **Vocals (Lead & Backing):** Legendary spoken bilingual intro ("Todo 's bien, chevere...") transitioning into soaring vocal agility, supported by rich multi-part backing harmonies.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Piano):** Solo the piano stem to study the exact 16th-note phrasing and dynamic touch of Stevie's montuno comping.
+- **Track 2 (Drums & Percussion):** Mute to practice laying down your own Latin-funk percussion layers or drum kit groove.
+- **Track 3 (Bass):** Mute the bass track and play along with the piano and percussion, focusing on locking into the montuno turnaround.
+- **Track 4 & 5 (Backing & Lead Vocals):** Solo vocals to analyze micro-vocal inflections, dynamic vibrato, and Stevie's improvisational vocables.
+- **Track 6 (Instrumental Full Mix):** Play or sing live with the full rhythm section.
