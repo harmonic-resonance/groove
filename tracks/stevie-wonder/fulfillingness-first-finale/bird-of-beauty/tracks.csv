@@ -1,2 +1,7 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=xRsNVrzAQN4,xRsNVrzAQN4,3:48,official_audio,0.000000,Master full stereo mix reference track
+1,cuíca,Cuíca,https://www.youtube.com/watch?v=n02K2a72e-Y,n02K2a72e-Y,00:17,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:00 - 00:17)
+2,drums,Drums,https://www.youtube.com/watch?v=n02K2a72e-Y,n02K2a72e-Y,03:49,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (00:17 - 04:06)
+3,bass,Bass,https://www.youtube.com/watch?v=n02K2a72e-Y,n02K2a72e-Y,03:29,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (04:06 - 07:35)
+4,rhodes-and-muted-clavs,Rhodes And Muted Clavs,https://www.youtube.com/watch?v=n02K2a72e-Y,n02K2a72e-Y,03:43,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (07:35 - 11:18)
+5,vocals,Vocals,https://www.youtube.com/watch?v=n02K2a72e-Y,n02K2a72e-Y,03:45,isolated_tracks_video,0.000000,Sliced from Unheard Isolations  (11:18 - 15:03)

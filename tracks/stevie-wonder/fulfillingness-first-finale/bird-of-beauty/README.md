@@ -8,11 +8,16 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Recording Arranger, Producer, Composer Lyricist
-- **Malcolm Cecil**: Associate Producer, Engineer
-- **Robert Margouleff**: Associate Producer, Engineer
-- **Gary Olazabal**: Participant
-- **Joan DeCola**: Participant
+- **Stevie Wonder**: Lead Vocals, Fender Rhodes, Hohner Clavinet (muted), Drums, Moog Bass, Percussion, Arranger, Producer, Composer
+- **Bobbye Hall**: Cuíca
+- **Sérgio Mendes**: Portuguese Lyrics
+- **Shirley Brewer**: Background Vocals
+- **Lani Groves**: Background Vocals
+- **Deniece Williams**: Background Vocals
+- **Malcolm Cecil**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Robert Margouleff**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Gary Olazabal**: Engineer
+- **Joan DeCola**: Recording Participant
 
 ## YouTube Official Audio Source
 - **URL:** [https://www.youtube.com/watch?v=xRsNVrzAQN4](https://www.youtube.com/watch?v=xRsNVrzAQN4)
@@ -48,8 +53,16 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Bird Of Beauty.
+A breathtaking Afro-Brazilian samba-soul hybrid. Stevie channels the rhythmic buoyancy of Rio de Janeiro bossa and samba through his signature Detroit funk and sophisticated harmonic prism:
+- **Cuíca (Friction Drum):** Played with master touch by percussionist Bobbye Hall. The laughing, squeaking glissandi of the cuíca set the joyful Brazilian street carnival mood from the opening measure and punctuate syncopated upbeats.
+- **Drums:** Stevie lays down an intricate samba-funk groove. Crisp hi-hat 16th-note subdivisions, light ghosted snare rim clicks, and a dynamic kick pattern that pulses lightly on beat 1 and drives the upbeat samba push into beat 3.
+- **Moog Bass:** Programmed with Margouleff and Cecil via TONTO. Round, woody, and agile, the synthesizer bass mimics an acoustic upright bass playing a syncopated samba surdo pulse with buoyant octave bounces and walking passing tones.
+- **Fender Rhodes & Muted Clavinet:** Stevie layers a warm, bell-like Rhodes playing lush bossa jazz harmonies (major 7ths, 9ths, 13ths) against a tightly damped Hohner clavinet providing percussive, syncopated 16th-note chank across the stereo field.
+- **Vocals (Lead & Backing):** Wonder sings the bilingual bridge written by Sérgio Mendes in buoyant Portuguese (*"Deixa a tristeza pra lá..."*), answered by the ethereal three-part vocal harmonies of Shirley Brewer, Lani Groves, and Deniece Williams.
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Cuíca):** Solo to observe Bobbye Hall's pitch modulation technique and micro-timing around the downbeats.
+- **Track 2 (Drums):** Solo to practice locking your ghost notes and hi-hat feathering with Stevie's natural, unquantized feel; mute to lay down your own drum kit or batucada percussion.
+- **Track 3 (Bass):** Solo to study Stevie's Moog bass articulation and surdo-inspired accent patterns; mute to practice walking samba bass lines.
+- **Track 4 (Rhodes & Muted Clavinet):** Solo to isolate the harmonic voicings and damped clavinet damping technique; mute to practice your own keyboard comping.
+- **Track 5 (Vocals):** Solo to hear Stevie's Portuguese phrasing, vibrato control, and Deniece Williams/Lani Groves/Shirley Brewer backing blends.
