@@ -1,2 +1,6 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=mD96b2xOraM,mD96b2xOraM,4:14,official_audio,0.000000,Master full stereo mix reference track
+1,drums,Drums,https://www.youtube.com/watch?v=xjIjjiXYKdY,xjIjjiXYKdY,03:52,isolated_tracks_video,0.000000,Drums (00:00 - 03:52)
+2,acoustic-piano-and-keys,Acoustic Piano And Keys,https://www.youtube.com/watch?v=xjIjjiXYKdY,xjIjjiXYKdY,03:50,isolated_tracks_video,0.000000,"Stevie Wonder playing acoustic piano, Rhodes, and bass synth (03:52 - 07:42)"
+3,organ-and-keys,Organ And Keys,https://www.youtube.com/watch?v=xjIjjiXYKdY,xjIjjiXYKdY,04:14,isolated_tracks_video,0.000000,Ronnie Foster on organ with Greg Phillinganes and Stevie Wonder keys (07:42 - 11:56)
+4,vocals,Vocals,https://www.youtube.com/watch?v=xjIjjiXYKdY,xjIjjiXYKdY,03:44,isolated_tracks_video,0.000000,Stevie Wonder lead and background vocals (11:56 - 15:40)

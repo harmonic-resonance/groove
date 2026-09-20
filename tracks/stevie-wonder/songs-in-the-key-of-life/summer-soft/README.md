@@ -8,7 +8,10 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Recording Arranger, Producer, Composer Lyricist
+- **Stevie Wonder**: Lead & Background Vocals, Acoustic Piano, Fender Rhodes, Bass Synthesizer, Drums, Producer, Composer Lyricist, Arranger
+- **Ronnie Foster**: Organ
+- **Ben Bridges**: Rhythm Guitar
+- **Larry "Nastee" Latimer**: Percussion
 - **Gary Olazabal**: Recording Engineer
 - **John Fischbach**: Recording Engineer
 
@@ -44,8 +47,15 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Summer Soft.
+A breathtaking compositional and dynamic tour-de-force that transitions from an intimate acoustic piano ballad into an ecstatic, modulating gospel-funk climax:
+- **Acoustic Piano & Keys (Stevie Wonder):** Stevie introduces the delicate seasonal verses with lyrical acoustic piano voicings and gentle Fender Rhodes pads. As the song progresses, the piano chords become percussive, driving gospel pushes that propel the band through multiple chromatic upward modulations (B♭ → B → C → D♭).
+- **Drums & Percussion (Stevie Wonder & Larry Latimer):** Begins with complete silence during the intimate solo piano verse, entering softly before transforming into a powerhouse performance on the escalating choruses. Stevie delivers thunderous crash-cymbal hits, syncopated ride patterns, and explosive fills that elevate each key modulation.
+- **Organ (Ronnie Foster):** Renowned jazz organist Ronnie Foster adds rich gospel swells, Leslie speaker choruses, and screaming sustained chords that fill the sonic ceiling during the emotional climaxes.
+- **Bass Synthesizer:** Warm, melodic synth bass lines programmed by Stevie that anchor the intricate chromatic turnaround progressions and reinforce the escalating modulation steps.
+- **Vocals (Stevie Wonder):** Dynamic masterclass moving from tender, breathy storytelling in the lower register to full-throated, passionate gospel belts on the modulating outro (*"Summer soft, sits upon a leaf of gold..."*).
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Drums):** Solo to practice Stevie's dynamic escalation from delicate verse timekeeping to full-throttle modulation crashes; mute to lay down your own dynamic drumming.
+- **Track 2 (Acoustic Piano & Keys):** Solo to study Stevie's lush jazz/gospel chord substitutions and voice leading across the modulating key changes.
+- **Track 3 (Organ & Keys):** Solo to observe Ronnie Foster's Hammond drawbar articulation, Leslie speed switching, and gospel comping fills.
+- **Track 4 (Vocals):** Solo to hear Stevie's pitch accuracy across four consecutive half-step modulations and his raw, emotive vocal rasp.
