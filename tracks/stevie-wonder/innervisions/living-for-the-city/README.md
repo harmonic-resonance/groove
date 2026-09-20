@@ -8,9 +8,9 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Composer Lyricist, Producer, Recording Arranger
-- **Robert Margouleff**: Associate Producer, Engineer
-- **Malcolm Cecil**: Engineer, Associate Producer
+- **Stevie Wonder**: Lead & Background Vocals, Fender Rhodes Electric Piano, Drums, Moog Bass, TONTO Synthesizer, ARP Synthesizer, Handclaps, Producer, Composer Lyricist, Arranger
+- **Robert Margouleff**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Malcolm Cecil**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
 - **Austin Godsey**: Recording Engineer
 - **Dan Barbiero**: Recording Engineer
 
@@ -48,19 +48,19 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-A dramatic, visceral slow funk groove at 98 BPM. The pocket feels heavy, deliberate, and soaked in narrative tension. Every snare hit lands with crushing conviction.
+A monumental, visceral slow-funk masterpiece at ~98 BPM. Stevie performed every instrument entirely himself, building a rhythm track soaked in gritty urban realism and crushing narrative weight:
+- **Drums (Track 1):** Stevie lays back heavy on the pocket. The kick thumps squarely on beat 1 with syncopated 16th pickups, while each snare hit lands with crushing conviction and dynamic stick velocity.
+- **Moog Bass (Track 2):** Synthesized using the TONTO modular system. The bass line is punchy, rounded, and aggressive, locking directly into the kick drum with staccato 16th-note articulations that create breathing room for the vocal growl.
+- **Fender Rhodes (Track 3):** Stevie's Rhodes is driven through subtle preamp saturation, delivering biting, percussive chord attacks that outline the dark F♯ minor progression with gospel-blues flourishes.
+- **TONTO & ARP Synthesizer (Track 4):** Soaring polyphonic synth textures, brass-like filter swells, and dramatic sound effects that provide the cinematic, atmospheric tension during the song's dramatic shifts.
+- **Vocals (Track 5):** One of the rawest vocal performances in popular music history. Wonder pushes his voice from clean soulful narration in the early verses into an agonizing, gravelly, full-throat rasp following the central radio drama scene.
 
-### Micro-timing & Articulation
-Stevie plays slightly behind the beat on the drums, reinforcing the struggle and gravity of the lyrical narrative.
-
-### Interlocking Rhythms
-The interaction between the biting Rhodes attack and the fat, fuzzy Moog bass frequencies fills the entire mid-to-low acoustic spectrum without stepping on the vocal narrative.
-
----
-
-## Rehearsal & Play-Along Guide
-- Mute the Rhodes and play the dark chord progression, feeling how the heavy snare gives weight to each bar.
-- Solo the Moog bass and study how analog synthesizer envelope decay shapes the rhythmic punch.
+### Rehearsal Guide
+- **Track 1 (Drums):** Solo to practice Stevie's dragging behind-the-beat pocket feel; mute to lock your own live drums into the Rhodes and Moog bass.
+- **Track 2 (Bass):** Solo to study Stevie's analog synthesizer filter envelope articulation; mute to practice laying down electric or synth bass.
+- **Track 3 (Fender Rhodes):** Solo to isolate the gritty Rhodes voicing and syncopated left-right hand comping interplay.
+- **Track 4 (TONTO Synth):** Solo to examine Cecil and Margouleff's pioneering modular synthesizer patches and sound design.
+- **Track 5 (Vocals):** Solo to study Stevie's vocal dynamics, breath control, and dramatic emotional arc.
 
 ---
 

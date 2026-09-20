@@ -1,2 +1,7 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=ghLWjyOOLno,ghLWjyOOLno,7:23,official_audio,0.000000,Master full stereo mix reference track
+1,drums,Drums,https://www.youtube.com/watch?v=0QC-cGQItks,0QC-cGQItks,04:15,isolated_tracks_video,0.000000,Sliced from HJ's Corner (00:00 - 04:15)
+2,bass,Bass,https://www.youtube.com/watch?v=0QC-cGQItks,0QC-cGQItks,04:16,isolated_tracks_video,0.000000,Sliced from HJ's Corner (04:15 - 08:31)
+3,fender-rhodes,Fender Rhodes,https://www.youtube.com/watch?v=0QC-cGQItks,0QC-cGQItks,04:17,isolated_tracks_video,0.000000,Sliced from HJ's Corner (08:31 - 12:48)
+4,tonto-synth,TONTO Synth,https://www.youtube.com/watch?v=0QC-cGQItks,0QC-cGQItks,02:43,isolated_tracks_video,0.000000,Sliced from HJ's Corner (12:48 - 15:31)
+5,vocals,Vocals,https://www.youtube.com/watch?v=0QC-cGQItks,0QC-cGQItks,04:53,isolated_tracks_video,0.000000,Sliced from HJ's Corner (15:31 - 20:24)
