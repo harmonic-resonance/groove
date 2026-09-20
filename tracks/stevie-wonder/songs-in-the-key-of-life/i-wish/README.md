@@ -58,6 +58,7 @@ Stevie's left-hand keyboard comping doubles key chordal accents while his right 
 - Mute the Bass stem and practice playing Nathan Watts' walking line: focus on the staccato cutoff of the notes and dynamic consistency.
 - Mute the Keyboards stem and practice funky rhythm comping over the walking bass groove.
 - Loop the bridge turnaround in Audacity to master the transitional brass and rhythm section hits.
+- Practice vocal performance against the complete instrumental mix (`06_instrumental.webm`), or study Stevie Wonder's vocal phrasing, breath support, and dynamic nuances with the isolated vocal stem (`05_vocals.webm`).
 
 ---
 

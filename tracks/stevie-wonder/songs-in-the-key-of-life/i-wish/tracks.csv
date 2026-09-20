@@ -4,3 +4,6 @@ track_number,stem_name,display_name,url,video_id,duration,source_type,start_offs
 2,bass,Walking Bass (Nathan Watts),https://www.youtube.com/watch?v=9PHrzWjPodc,9PHrzWjPodc,4:08,stems_playlist,0.000000,Rock Band studio master rip (walking bassline)
 3,guitars,Guitars,https://www.youtube.com/watch?v=QYcq9H5sS78,QYcq9H5sS78,4:08,stems_playlist,0.000000,Rock Band studio master rip (rhythm funk guitar)
 4,keyboards,Fender Rhodes & Clavinet,https://www.youtube.com/watch?v=6GjOW43QGCY,6GjOW43QGCY,4:08,stems_playlist,0.000000,Rock Band studio master rip (Rhodes & clavinet)
+5,vocals,Isolated Vocals,https://www.youtube.com/watch?v=9HpzWNOubyY,9HpzWNOubyY,2:41,stems_playlist,0.000000,Rock Band studio master rip (isolated Stevie vocals)
+6,instrumental,Full Instrumental,https://www.youtube.com/watch?v=nHh3YwQ0as0,nHh3YwQ0as0,4:08,stems_playlist,0.000000,Rock Band studio master rip (full instrumental mix)
+

@@ -58,6 +58,7 @@ During the verse, the Rhodes plays syncopated off-beat chords while the bass bou
 - Solo the Bass and Horns stems: listen to how Nathan Watts articulates each note in the unison run without muddying the horns.
 - Mute the Bass stem and practice the unison lick at 60%, 75%, 90%, and finally 100% tempo.
 - Mute the Drums stem and rehearse keeping the celebratory, danceable swing without rushing.
+- Practice vocals and lead horn lines against the complete instrumental backing mix (`06_instrumental.webm`).
 
 ---
 
