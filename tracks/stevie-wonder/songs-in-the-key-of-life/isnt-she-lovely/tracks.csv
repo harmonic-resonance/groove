@@ -1,2 +1,6 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=7YGc6RMOYF8,7YGc6RMOYF8,6:34,official_audio,0.000000,Master full stereo mix reference track
+1,drums-and-percussion,Drums and Percussion,https://www.youtube.com/watch?v=S1gdI54B9rg,S1gdI54B9rg,06:39,isolated_tracks_video,0.000000,Stevie Wonder on drums with auxiliary percussion (00:04 - 06:43)
+2,bass,Bass,https://www.youtube.com/watch?v=S1gdI54B9rg,S1gdI54B9rg,06:44,isolated_tracks_video,0.000000,Stevie Wonder on bass synthesizer (06:43 - 13:27)
+3,keyboards-handclaps-and-harmonica,"Keyboards, Handclaps and Harmonica",https://www.youtube.com/watch?v=S1gdI54B9rg,S1gdI54B9rg,06:21,isolated_tracks_video,0.000000,"Stevie Wonder Rhodes, harmonica & handclaps with Greg Phillinganes piano (13:27 - 19:48)"
+4,vocals-crying-and-spoken-words,"Vocals, Crying and Spoken Words",https://www.youtube.com/watch?v=S1gdI54B9rg,S1gdI54B9rg,04:21,isolated_tracks_video,0.000000,Stevie Wonder vocals with baby Aisha Morris crying and bathtub dialogue (19:48 - 24:09)

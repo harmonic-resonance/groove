@@ -8,7 +8,9 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Composer Lyricist, Producer, Recording Arranger
+- **Stevie Wonder**: Lead Vocals, Chromatic Harmonica, Fender Rhodes Electric Piano, Bass Synthesizer, Drums, Handclaps, Producer, Composer Lyricist, Arranger
+- **Greg Phillinganes**: Acoustic Piano / Keyboards
+- **Aisha Morris**: Crying, Laughing, and Outro Bathtub Dialogue
 - **Gary Olazabal**: Recording Engineer
 - **John Fischbach**: Recording Engineer
 
@@ -44,19 +46,17 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-A swinging soul shuffle at 120 BPM. The groove smiles from start to finish. The ride cymbal pattern keeps the shuffle lilting while the bass dances on the 1 and the upbeat of 2.
+A radiant, joyful soul-blues shuffle at ~120 BPM. Celebrated for welcoming his newborn daughter Aisha into the world, Stevie played virtually every instrument himself, weaving an infectious, dancing groove with high triplet swing (~62% swing ratio):
+- **Drums & Percussion (Track 1):** Stevie's drum kit keeps a buoyant, skipping shuffle groove. The ride cymbal pattern lilts forward while the snare snaps on 2 and 4 with playful ghosted shuffle rolls and auxiliary shaker/percussion.
+- **Bass Synthesizer (Track 2):** Bouncing keyboard bass performance by Stevie (replacing Nathan Watts' early guide bass). The bass dances on beat 1 and the upbeat of 2, creating an irrepressible bounce that anchors the circle-of-fifths progression ($C\sharp m7 \to F\sharp 9 \to B9 \to E$).
+- **Keyboards, Handclaps & Harmonica (Track 3):** Stevie layers his warm Fender Rhodes chords and syncopated studio handclaps alongside Greg Phillinganes' acoustic piano accents. Above the harmonic foundation, Stevie unleashes one of the most virtuosic chromatic harmonica solos ever recorded.
+- **Vocals, Crying & Spoken Words (Track 4):** Stevie's jubilant vocal performance capturing unadulterated fatherly joy, closing with the classic recorded family audio of baby Aisha laughing and splashing in the bathtub (*"Come on, Aisha... get out of the water, baby!"*).
 
-### Micro-timing & Articulation
-The swing ratio is high (~62%), leaning into a bluesy shuffle feel that gives the Rhodes comping its infectious bounce.
-
-### Interlocking Rhythms
-The chromatic harmonica floats above the tight rhythm section, demonstrating how a solo instrument can play both rhythmically and melodically over a repeating chord vamp.
-
----
-
-## Rehearsal & Play-Along Guide
-- Solo the Harmonica and Rhodes stems to study Stevie's melodic phrasing against his own harmonic comping.
-- Mute the Harmonica stem and practice improvising your own lead lines (guitar, sax, flute, or keyboard) over the rhythm track.
+### Rehearsal Guide
+- **Track 1 (Drums & Percussion):** Solo to practice maintaining an even, lilting shuffle pulse with ghost note subdivisions; mute to lay down your own shuffle kit groove.
+- **Track 2 (Bass):** Solo to study Stevie's synth bass bounce and voice-leading; mute to practice walking shuffle bass lines.
+- **Track 3 (Keyboards, Handclaps & Harmonica):** Solo to transcribe Stevie's chromatic harmonica phrasing and tone modulation; mute to practice your own harmonica, sax, or guitar lead over the groove.
+- **Track 4 (Vocals & Outro):** Solo to examine Stevie's vocal dynamics and the historic bathtub outro audio.
 
 ---
 
