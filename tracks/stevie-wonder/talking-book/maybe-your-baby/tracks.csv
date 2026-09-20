@@ -1,2 +1,7 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=PrwRMS1oJPA,PrwRMS1oJPA,6:51,official_audio,0.000000,Master full stereo mix reference track
+1,clavinet,Clavinet,https://www.youtube.com/watch?v=n_r_lgJZtOQ,n_r_lgJZtOQ,06:46,isolated_tracks_video,0.000000,Stevie playing Hohner Clavinet with Mu-Tron / wah pedal (00:00 - 06:46)
+2,electric-guitar,Electric Guitar,https://www.youtube.com/watch?v=n_r_lgJZtOQ,n_r_lgJZtOQ,03:50,isolated_tracks_video,0.000000,Ray Parker Jr. playing electric guitar (06:46 - 10:36)
+3,drums,Drums,https://www.youtube.com/watch?v=n_r_lgJZtOQ,n_r_lgJZtOQ,06:36,isolated_tracks_video,0.000000,Stevie Wonder on drums (10:36 - 17:12)
+4,moog-bass,Moog Bass,https://www.youtube.com/watch?v=n_r_lgJZtOQ,n_r_lgJZtOQ,06:53,isolated_tracks_video,0.000000,Stevie Wonder on TONTO Moog bass synthesizer (17:12 - 24:06)
+5,vocals,Vocals,https://www.youtube.com/watch?v=n_r_lgJZtOQ,n_r_lgJZtOQ,06:24,isolated_tracks_video,0.000000,Stevie Wonder lead and background vocals (24:06 - 30:30)

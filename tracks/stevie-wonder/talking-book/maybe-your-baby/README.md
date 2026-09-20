@@ -8,9 +8,10 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Producer, Composer Lyricist
-- **Robert Margouleff**: Associate Producer, Engineer
-- **Malcolm Cecil**: Associate Producer, Engineer
+- **Stevie Wonder**: Lead & Background Vocals, Hohner Clavinet (with wah-wah pedal), Drums, Moog Bass, Producer, Composer Lyricist
+- **Ray Parker Jr.**: Electric Guitar
+- **Robert Margouleff**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Malcolm Cecil**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
 - **Austin Godsey**: Recording Engineer
 - **Joan DeCola**: Recording Engineer
 
@@ -48,8 +49,16 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-Detailed breakdown of the kick, snare, bass, and keyboard interplay for Maybe Your Baby.
+One of the darkest, heaviest, and most swampy funk grooves in Stevie's catalog. Recorded with just Stevie and an 18-year-old Ray Parker Jr. on guitar, the arrangement relies on greasy, slow-burning pocket dynamics in E minor:
+- **Hohner Clavinet (Wah-Wah / Filter):** Stevie runs the Clavinet through a wah pedal, establishing a growling, guttural 16th-note rhythm that forms the hypnotic backbone of the entire song. Micro-timing is laid way back behind the beat.
+- **Electric Guitar (Ray Parker Jr.):** Chunky rhythm scratches and blistering blues-funk fills. Parker locks right inside Stevie's Clavinet chank, adding stinging counter-rhythms and wah-inflected lead bends.
+- **Drums:** Heavy, unhurried, behind-the-beat drum groove. Stevie hits the kick hard on beat 1 with a delayed, dragging snare on 2 and 4, creating an immense sense of space and weight.
+- **Moog Bass (TONTO):** Deep, squelchy, sub-bass synth lines programmed with Margouleff and Cecil. The Moog bass wraps around the kick drum with sustained low growls and punchy syncopated octave drops.
+- **Vocals (Stevie Wonder):** A vocal tour-de-force covering extreme vocal ranges—from gravelly, guttural low growls to screaming falsetto ad-libs (*"Stevie does all the vocals, even the high pitched ones"*).
 
 ### Rehearsal Guide
-- Solo stems or full mix to study micro-timing and phrasing.
-- Play along in the pocket with the original master rhythm track.
+- **Track 1 (Clavinet):** Solo to master the foot-rocking wah sweep and percussive left-hand muting technique.
+- **Track 2 (Electric Guitar):** Solo to study Ray Parker Jr.'s early funk rhythm comping and wah articulation; mute to track your own rhythm/lead guitar parts.
+- **Track 3 (Drums):** Solo to practice locking with the dragging, laid-back snare pocket; mute to play along live on drum kit.
+- **Track 4 (Moog Bass):** Solo to examine the TONTO envelope filter articulation and note lengths; mute to practice laying down electric or synth bass.
+- **Track 5 (Vocals):** Solo to analyze Stevie's vocal layering, harmonies, and ferocious falsetto delivery.
