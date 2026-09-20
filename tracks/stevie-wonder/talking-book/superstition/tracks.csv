@@ -1,5 +1,8 @@
 track_number,stem_name,display_name,url,video_id,duration,source_type,start_offset,notes
 0,full_song,Full Song Reference,https://www.youtube.com/watch?v=egqv1mtos6A,egqv1mtos6A,4:28,official_audio,0.000000,Master full stereo mix reference track
-1,drums,Drums,https://www.youtube.com/watch?v=8ziGOKNAluY,8ziGOKNAluY,4:56,stems_playlist,0.000000,Rock Band studio master rip (isolated drums)
-2,bass,TONTO Moog Synth Bass,https://www.youtube.com/watch?v=vJS58xWUef8,vJS58xWUef8,4:56,stems_playlist,0.000000,Rock Band studio master rip (isolated synth bass)
-3,vocals,Lead & Backing Vocals,https://www.youtube.com/watch?v=SxqK9DXlKqE,SxqK9DXlKqE,4:56,stems_playlist,0.000000,Rock Band studio master rip (isolated vocals)
+1,drums,Drums,https://www.youtube.com/watch?v=Ru0WO_gaTdk,Ru0WO_gaTdk,05:01,isolated_tracks_video,0.000000,Sliced from HJ's Corner (00:00 - 05:01)
+2,moog-bass,Moog Bass,https://www.youtube.com/watch?v=Ru0WO_gaTdk,Ru0WO_gaTdk,04:47,isolated_tracks_video,0.000000,Sliced from HJ's Corner (05:01 - 09:48)
+3,clavinets,Clavinets,https://www.youtube.com/watch?v=Ru0WO_gaTdk,Ru0WO_gaTdk,04:51,isolated_tracks_video,0.000000,Sliced from HJ's Corner (09:48 - 14:39)
+4,brass,Brass,https://www.youtube.com/watch?v=Ru0WO_gaTdk,Ru0WO_gaTdk,03:37,isolated_tracks_video,0.000000,Sliced from HJ's Corner (14:39 - 18:16)
+5,vocals,Vocals,https://www.youtube.com/watch?v=Ru0WO_gaTdk,Ru0WO_gaTdk,05:23,isolated_tracks_video,0.000000,Sliced from HJ's Corner (18:16 - 23:39)
+

@@ -8,9 +8,12 @@
 ---
 
 ## Personnel & Credits
-- **Stevie Wonder**: Composer Lyricist, Recording Arranger, Producer, Vocalist
-- **Robert Margouleff**: Additionalproducer, Engineer
-- **Malcolm Cecil**: Additionalproducer
+- **Stevie Wonder**: Lead & Background Vocals, Hohner Clavinet (multiple overdubbed tracks), Drums, Moog Bass, Composer Lyricist, Producer, Arranger
+- **Trevor Laurence**: Tenor Saxophone
+- **Steve Madaio**: Trumpet
+- **Robert Margouleff**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Malcolm Cecil**: Associate Producer, Synthesizer Programming / Engineering (TONTO)
+- **Austin Godsey**: Recording Engineer
 
 ## YouTube Official Audio Source
 - **URL:** [https://www.youtube.com/watch?v=egqv1mtos6A](https://www.youtube.com/watch?v=egqv1mtos6A)
@@ -44,21 +47,19 @@
 ## Groove & Pocket Analysis
 
 ### The Pocket
-The pocket is built upon a delicate, loose 16th-note swing (~58% swing ratio). Stevie's drumming sits slightly behind the beat on the snare (backbeat on 2 and 4), while his hi-hat pushes the forward momentum with crisp micro-dynamics. The TONTO synth bass leaves generous space on beat 1, striking on the '1-e-and-A' pickup.
+The definitive masterclass in funk rhythm section interplay. The pocket is built upon a loose, elastic 16th-note swing (~58% swing ratio at ~100 BPM):
+- **Drums (Track 1):** Stevie's drum kit anchors the universe. The 4-bar opening drum beat showcases crisp, feathered hi-hat 16ths, punchy kick pickups, and a slightly laid-back snare backbeat on 2 and 4, filled with dynamic ghost notes.
+- **Moog Bass (Track 2):** Synthesized via the TONTO modular system. The bass deliberately leaves space on beat 1, entering on the "1-e-and-A" pickup with aggressive filter bite and punchy sub-bass resonance.
+- **Clavinets (Track 3):** Stevie layered up to eight separate Hohner Clavinet tracks through tube amps and filters. Panmed across the stereo field, the parts use two-handed polyrhythmic counterpoint (palm-muted damping in the left hand, percussive chord bites in the right).
+- **Brass (Track 4):** Trevor Laurence (tenor sax) and Steve Madaio (trumpet) punctuate the choruses with razor-sharp, staccato horn stabs that slice through the dense clavinet bed.
+- **Vocals (Track 5):** Stevie's soaring, gritty lead vocal and soulful multi-tracked backing harmonies delivered with swagger and dramatic dynamics.
 
-### Micro-timing & Articulation
-Notice the interplay between Stevie's right hand on the hi-hat and his left hand on the snare. The ghost notes on the snare act as rhythmic connective tissue between the heavy backbeats. The tempo stays remarkably steady near 100 BPM despite being played completely without a click track.
-
-### Interlocking Rhythms
-Superstition is a textbook study in West African hocket polyrhythm adapted to funk: no single instrument plays every beat; instead, Clavinet 1, Clavinet 2, and the Moog Bass weave through each other like three percussionists playing congas, agogô, and talking drum.
-
----
-
-## Rehearsal & Play-Along Guide
-- Mute the Drums stem and play the drum groove: practice maintaining an even 16th-note hi-hat pulse while keeping the backbeat relaxed.
-- Mute the Clavinet stems: practice the two-handed clavinet technique using left-hand muted dampening (palm mute) and right-hand rhythmic chord bites.
-- Mute the Bass stem: practice locking your bass guitar or synth bass notes strictly with Stevie's kick drum accents.
-- Solo both Clavinets together to hear how the stereo panning creates a three-dimensional funk texture.
+### Rehearsal Guide
+- **Track 1 (Drums):** Solo to study Stevie's ghost note touch and hi-hat swing micro-timing; mute to play along live on drum kit.
+- **Track 2 (Moog Bass):** Solo to practice locking synth or electric bass into Stevie's kick drum syncopations; mute to play the bass line.
+- **Track 3 (Clavinets):** Solo to examine the multi-tracked clavinet layering, damping technique, and stereo counterpoint; mute to practice your own keyboard comping.
+- **Track 4 (Brass):** Solo to isolate Trevor Laurence and Steve Madaio's horn voicings and attack timing; mute to track brass or woodwinds.
+- **Track 5 (Vocals):** Solo to analyze Stevie's vocal phrasing, ornamentation, and vocal breath control.
 
 ---
 
